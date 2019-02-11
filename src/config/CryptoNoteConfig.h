@@ -79,9 +79,12 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(1000); /
 /* This section defines our minimum and maximum mixin counts required for transactions */
 const uint64_t MINIMUM_MIXIN_V0                              = 0;
 const uint64_t MAXIMUM_MIXIN_V0                              = 7;
+const uint64_t MINIMUM_MIXIN_CURRENT                         = MINIMUM_MIXIN_V0;
+const uint64_t MAXIMUM_MIXIN_CURRENT                         = MAXIMUM_MIXIN_V0;
 
 /* The mixin to use by default with zedwallet and turtle-service */
 const uint64_t DEFAULT_MIXIN_V0                              = 3;
+const uint64_t DEFAULT_MIXIN_CURRENT                         = DEFAULT_MIXIN_V0;
 
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(0);
 
@@ -163,6 +166,7 @@ const uint8_t  BLOCK_MAJOR_VERSION_6                         =  6;
 const uint8_t  BLOCK_MAJOR_VERSION_7                         =  7;
 const uint8_t  BLOCK_MAJOR_VERSION_8                         =  8;
 const uint8_t  BLOCK_MAJOR_VERSION_9                         =  9;
+const uint8_t  BLOCK_MAJOR_VERSION_CURRENT                   =  BLOCK_MAJOR_VERSION_5; // current blockchain version
 
 const uint8_t  BLOCK_MINOR_VERSION_0                         =  0;
 const uint8_t  BLOCK_MINOR_VERSION_1                         =  1;
