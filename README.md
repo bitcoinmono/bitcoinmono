@@ -1,4 +1,4 @@
-![image](https://github.com/bitcoinmono/bitcoinmono/raw/master/src/BitcoinMonoConfig/config/logo.png)
+![image](https://github.com/bitcoinmono/bitcoinmono/raw/master/src/BitcoinMonoConfig/config/logo2.png)
 
 ### Installing
 
