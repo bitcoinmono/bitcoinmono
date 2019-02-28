@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 // 
 // Please see the included LICENSE file for more information.
 
@@ -10,6 +10,8 @@
 #include <Common/FileSystemShim.h>
 
 #include <config/CryptoNoteConfig.h>
+
+#include <crypto/random.h>
 
 #include <CryptoNoteCore/Account.h>
 #include <CryptoNoteCore/CryptoNoteTools.h>
@@ -576,7 +578,7 @@ Error WalletBackend::unsafeSave() const
     byte salt[16];
 
     /* Generate 16 random bytes for the salt */
-    Crypto::generate_random_bytes(16, salt);
+    Random::randomBytes(16, salt);
 
     /* Using SHA256 as the algorithm */
     CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> pbkdf2;
@@ -683,11 +685,12 @@ std::tuple<Error, Crypto::Hash> WalletBackend::sendTransactionAdvanced(
     const uint64_t fee,
     const std::string paymentID,
     const std::vector<std::string> subWalletsToTakeFrom,
-    const std::string changeAddress)
+    const std::string changeAddress,
+    const uint64_t unlockTime)
 {
     return SendTransaction::sendTransactionAdvanced(
         destinations, mixin, fee, paymentID, subWalletsToTakeFrom,
-        changeAddress, m_daemon, m_subWallets
+        changeAddress, m_daemon, m_subWallets, unlockTime
     );
 }
 
