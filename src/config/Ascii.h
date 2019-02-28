@@ -6,6 +6,7 @@
 #pragma once
 
 const std::string asciiArt =
+"\n"
 "MMMMMMMMMMMMMMNmhso++////////++oyhmNMMMMMMMMMMMMMM\n"
 "MMMMMMMMMMNhs+//oshddmNNNNNNmddyso//+shNMMMMMMMMMM\n"
 "MMMMMMMNho/+shmMMMMMMMMMMMMMMMMMMMMmhs+/ohNMMMMMMM\n"
