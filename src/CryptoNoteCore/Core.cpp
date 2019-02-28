@@ -158,7 +158,7 @@ int64_t getEmissionChange(const Currency& currency, IBlockchainCache& segment, u
   auto lastBlocksSizes = segment.getLastBlocksSizes(currency.rewardBlocksWindow(), previousBlockIndex, addGenesisBlock);
   auto blocksSizeMedian = Common::medianValue(lastBlocksSizes);
   if (!currency.getBlockReward(cachedBlock.getBlock().majorVersion, blocksSizeMedian,
-                               cumulativeSize, alreadyGeneratedCoins, cumulativeFee, reward, emissionChange)) {
+                               cumulativeSize, alreadyGeneratedCoins, cumulativeFee, previousBlockIndex+1, reward, emissionChange)) {
     throw std::system_error(make_error_code(error::BlockValidationError::CUMULATIVE_BLOCK_SIZE_TOO_BIG));
   }
 
@@ -1047,7 +1047,7 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
   auto blocksSizeMedian = Common::medianValue(lastBlocksSizes);
 
   if (!currency.getBlockReward(cachedBlock.getBlock().majorVersion, blocksSizeMedian,
-                               cumulativeBlockSize, alreadyGeneratedCoins, cumulativeFee, reward, emissionChange)) {
+                               cumulativeBlockSize, alreadyGeneratedCoins, cumulativeFee, cachedBlock.getBlockIndex(), reward, emissionChange)) {
     logger(Logging::DEBUGGING) << "Block " << blockStr << " has too big cumulative size";
     return error::BlockValidationError::CUMULATIVE_BLOCK_SIZE_TOO_BIG;
   }
@@ -1887,7 +1887,18 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
     return error::BlockValidationError::WRONG_VERSION;
   }
 
-  if (block.timestamp > getAdjustedTime() + currency.blockFutureTimeLimit(previousBlockIndex+1)) {
+  uint64_t futureTimeLimit;
+
+  if (previousBlockIndex + 1 >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT)
+  {
+      futureTimeLimit = CryptoNote::parameters::DIFFICULTY_TARGET * 6;
+  }
+  else
+  {
+      futureTimeLimit = CryptoNote::parameters::DIFFICULTY_TARGET_V2 * 6;
+  }
+
+  if (block.timestamp > getAdjustedTime() + futureTimeLimit) {
     return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE;
   }
 
@@ -2522,13 +2533,13 @@ BlockDetails Core::getBlockDetails(const Crypto::Hash& blockHash) const {
   }
 
   int64_t emissionChange = 0;
-  bool result = currency.getBlockReward(blockDetails.majorVersion, blockDetails.sizeMedian, 0, prevBlockGeneratedCoins, 0, blockDetails.baseReward, emissionChange);
+  bool result = currency.getBlockReward(blockDetails.majorVersion, blockDetails.sizeMedian, 0, prevBlockGeneratedCoins, 0, blockIndex, blockDetails.baseReward, emissionChange);
   if (result) {}
   assert(result);
 
   uint64_t currentReward = 0;
   result = currency.getBlockReward(blockDetails.majorVersion, blockDetails.sizeMedian, blockDetails.transactionsCumulativeSize,
-                                   prevBlockGeneratedCoins, 0, currentReward, emissionChange);
+                                   prevBlockGeneratedCoins, 0, blockIndex, currentReward, emissionChange);
   assert(result);
 
   if (blockDetails.baseReward == 0 && currentReward == 0) {

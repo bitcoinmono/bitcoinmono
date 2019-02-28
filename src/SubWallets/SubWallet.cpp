@@ -148,10 +148,12 @@ std::tuple<uint64_t, uint64_t> SubWallet::getBalance(
     return {unlockedBalance, lockedBalance};
 }
 
-void SubWallet::reset(const uint64_t scanHeight)
+void SubWallet::reset(
+    const uint64_t startHeight,
+    const uint64_t startTimestamp)
 {
-    m_syncStartTimestamp = 0;
-    m_syncStartHeight = scanHeight;
+    m_syncStartTimestamp = startTimestamp;
+    m_syncStartHeight = startHeight;
 
     m_lockedInputs.clear();
     m_unconfirmedIncomingAmounts.clear();

@@ -594,7 +594,13 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.network_height = std::max(static_cast<uint32_t>(1), m_protocol.getBlockchainHeight());
   res.upgrade_heights = CryptoNote::parameters::FORK_HEIGHTS_SIZE == 0 ? std::vector<uint64_t>() : std::vector<uint64_t>(CryptoNote::parameters::FORK_HEIGHTS, CryptoNote::parameters::FORK_HEIGHTS + CryptoNote::parameters::FORK_HEIGHTS_SIZE);
   res.supported_height = CryptoNote::parameters::FORK_HEIGHTS_SIZE == 0 ? 0 : CryptoNote::parameters::FORK_HEIGHTS[CryptoNote::parameters::CURRENT_FORK_INDEX];
-  res.hashrate = (uint32_t)round(res.difficulty / CryptoNote::parameters::DIFFICULTY_TARGET);
+
+  res.hashrate = (uint32_t)round(
+    res.difficulty / 
+    (res.network_height >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT 
+  ? CryptoNote::parameters::DIFFICULTY_TARGET_V2 
+  : CryptoNote::parameters::DIFFICULTY_TARGET));
+
   res.synced = ((uint64_t)res.height == (uint64_t)res.network_height);
   res.testnet = m_core.getCurrency().isTestnet();
   res.major_version = m_core.getBlockDetails(m_core.getTopBlockIndex()).majorVersion;

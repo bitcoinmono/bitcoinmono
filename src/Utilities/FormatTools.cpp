@@ -111,7 +111,10 @@ ForkStatus get_fork_status(
         }
     }
 
-    const float days = (next_fork - height) / CryptoNote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
+    const float days = (next_fork - height) / 
+                      (height >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
+                     ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET
+                     : 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2);
 
     /* Next fork in < 30 days away */
     if (days < 30)
@@ -151,7 +154,10 @@ std::string get_fork_time(
         }
     }
 
-    const float days = (next_fork - height) / CryptoNote::parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
+    const float days = static_cast<float>(next_fork - height) / 
+                      (height >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
+                     ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET
+                     : 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2);
 
     std::stringstream stream;
 

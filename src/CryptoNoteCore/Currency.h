@@ -33,13 +33,7 @@ public:
       return m_timestampCheckWindow;
   }
 
-  uint64_t blockFutureTimeLimit(uint32_t blockHeight) const
-  {
-      return m_blockFutureTimeLimit;
-  }
-
   uint64_t moneySupply() const { return m_moneySupply; }
-  unsigned int emissionSpeedFactor() const { return m_emissionSpeedFactor; }
   uint64_t genesisBlockReward() const { return m_genesisBlockReward; }
 
   size_t rewardBlocksWindow() const { return m_rewardBlocksWindow; }
@@ -58,7 +52,6 @@ public:
       return m_defaultDustThreshold;
   }
 
-  uint64_t difficultyTarget() const { return m_difficultyTarget; }
   size_t difficultyWindow() const { return m_difficultyWindow; }
 
   size_t maxBlockSizeInitial() const { return m_maxBlockSizeInitial; }
@@ -94,8 +87,16 @@ public:
   const BlockTemplate& genesisBlock() const { return cachedGenesisBlock->getBlock(); }
   const Crypto::Hash& genesisBlockHash() const { return cachedGenesisBlock->getBlockHash(); }
 
-  bool getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins, uint64_t fee,
-    uint64_t& reward, int64_t& emissionChange) const;
+  bool getBlockReward(
+    const uint8_t blockMajorVersion,
+    const size_t medianSize,
+    const size_t currentBlockSize,
+    const uint64_t alreadyGeneratedCoins,
+    const uint64_t fee,
+    const uint64_t blockHeight,
+    uint64_t& reward,
+    int64_t& emissionChange) const;
+
   size_t maxBlockCumulativeSize(uint64_t height) const;
 
   bool constructMinerTx(uint8_t blockMajorVersion, uint32_t height, size_t medianSize, uint64_t alreadyGeneratedCoins, size_t currentBlockSize,
@@ -143,10 +144,8 @@ private:
   uint32_t m_minedMoneyUnlockWindow;
 
   size_t m_timestampCheckWindow;
-  uint64_t m_blockFutureTimeLimit;
 
   uint64_t m_moneySupply;
-  unsigned int m_emissionSpeedFactor;
   uint64_t m_genesisBlockReward;
 
   size_t m_rewardBlocksWindow;
@@ -159,7 +158,6 @@ private:
   uint64_t m_mininumFee;
   uint64_t m_defaultDustThreshold;
 
-  uint64_t m_difficultyTarget;
   size_t m_difficultyWindow;
   size_t m_difficultyLag;
   size_t m_difficultyCut;
@@ -225,10 +223,8 @@ public:
   CurrencyBuilder& minedMoneyUnlockWindow(uint32_t val) { m_currency.m_minedMoneyUnlockWindow = val; return *this; }
 
   CurrencyBuilder& timestampCheckWindow(size_t val) { m_currency.m_timestampCheckWindow = val; return *this; }
-  CurrencyBuilder& blockFutureTimeLimit(uint64_t val) { m_currency.m_blockFutureTimeLimit = val; return *this; }
 
   CurrencyBuilder& moneySupply(uint64_t val) { m_currency.m_moneySupply = val; return *this; }
-  CurrencyBuilder& emissionSpeedFactor(unsigned int val);
   CurrencyBuilder& genesisBlockReward(uint64_t val) { m_currency.m_genesisBlockReward = val; return *this; }
 
   CurrencyBuilder& rewardBlocksWindow(size_t val) { m_currency.m_rewardBlocksWindow = val; return *this; }
@@ -240,7 +236,6 @@ public:
   CurrencyBuilder& mininumFee(uint64_t val) { m_currency.m_mininumFee = val; return *this; }
   CurrencyBuilder& defaultDustThreshold(uint64_t val) { m_currency.m_defaultDustThreshold = val; return *this; }
 
-  CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
   CurrencyBuilder& difficultyWindow(size_t val);
   CurrencyBuilder& difficultyLag(size_t val) { m_currency.m_difficultyLag = val; return *this; }
   CurrencyBuilder& difficultyCut(size_t val) { m_currency.m_difficultyCut = val; return *this; }

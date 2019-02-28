@@ -585,11 +585,13 @@ void WalletSynchronizer::stop()
     }
 }
 
-void WalletSynchronizer::reset(uint64_t startHeight)
+void WalletSynchronizer::reset(
+    const uint64_t startHeight,
+    const uint64_t startTimestamp)
 {
     /* Reset start height / timestamp */
     m_startHeight = startHeight;
-    m_startTimestamp = 0;
+    m_startTimestamp = startTimestamp;
 
     /* Discard sync progress */
     m_syncStatus = SynchronizationStatus();
