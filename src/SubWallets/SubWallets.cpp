@@ -830,7 +830,9 @@ bool SubWallets::isViewWallet() const
     return m_isViewWallet;
 }
 
-void SubWallets::reset(const uint64_t scanHeight)
+void SubWallets::reset(
+    const uint64_t startHeight,
+    const uint64_t startTimestamp)
 {
     std::scoped_lock lock(m_mutex);
 
@@ -840,7 +842,7 @@ void SubWallets::reset(const uint64_t scanHeight)
 
     for (auto &[pubKey, subWallet] : m_subWallets)
     {
-        subWallet.reset(scanHeight);
+        subWallet.reset(startHeight, startTimestamp);
     }
 }
 

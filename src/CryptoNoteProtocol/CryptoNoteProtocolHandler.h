@@ -84,11 +84,13 @@ namespace CryptoNote
     int processObjects(CryptoNoteConnectionContext& context, std::vector<RawBlock>&& rawBlocks, const std::vector<CachedBlock>& cachedBlocks);
     Logging::LoggerRef logger;
 
+private:
+    int doPushLiteBlock(NOTIFY_NEW_LITE_BLOCK::request block, CryptoNoteConnectionContext& context, std::vector<BinaryArray> missingTxs);
+
   private:
 
     System::Dispatcher& m_dispatcher;
     ICore& m_core;
-    const Currency& m_currency;
 
     p2p_endpoint_stub m_p2p_stub;
     IP2pEndpoint* m_p2p;

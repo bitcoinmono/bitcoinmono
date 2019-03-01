@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 // 
 // Please see the included LICENSE file for more information.
 
@@ -9,6 +9,8 @@
 #include <config/CryptoNoteConfig.h>
 
 #include <CryptoNoteCore/Mixins.h>
+
+#include <crypto/random.h>
 
 #include <cryptopp/modes.h>
 #include <cryptopp/sha.h>
@@ -39,7 +41,7 @@ ApiDispatcher::ApiDispatcher(
     m_rpcPassword(rpcPassword)
 {
     /* Generate the salt used for pbkdf2 api authentication */
-    Crypto::generate_random_bytes(16, m_salt);
+    Random::randomBytes(16, m_salt);
 
     /* Make sure to do this after initializing the salt above! */
     m_hashedPassword = hashPassword(rpcPassword);
@@ -208,7 +210,12 @@ ApiDispatcher::ApiDispatcher(
 
 void ApiDispatcher::start()
 {
-    m_server.listen(m_host, m_port);
+    if (!m_server.listen(m_host, m_port))
+    {
+      std::cout << "Could not bind service to " << m_host << ":" << m_port 
+                << "\nIs another service using this address and port?\n";
+      exit(1);
+    }
 }
 
 void ApiDispatcher::stop()
@@ -658,8 +665,16 @@ std::tuple<Error, uint16_t> ApiDispatcher::sendAdvancedTransaction(
         changeAddress = tryGetJsonValue<std::string>(body, "changeAddress");
     }
 
+    uint64_t unlockTime = 0;
+
+    if (body.find("unlockTime") != body.end())
+    {
+        unlockTime = tryGetJsonValue<uint64_t>(body, "unlockTime");
+    }
+
     auto [error, hash] = m_walletBackend->sendTransactionAdvanced(
-        destinations, mixin, fee, paymentID, subWalletsToTakeFrom, changeAddress
+        destinations, mixin, fee, paymentID, subWalletsToTakeFrom, changeAddress,
+        unlockTime
     );
 
     if (error)

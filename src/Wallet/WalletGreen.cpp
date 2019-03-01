@@ -2,7 +2,7 @@
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018, The BBSCoin Developers
 // Copyright (c) 2018, The Karbo Developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -38,10 +38,13 @@
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include "CryptoNoteCore/TransactionApi.h"
 #include "crypto/crypto.h"
+#include <crypto/random.h>
 #include "Transfers/TransfersContainer.h"
 #include "WalletSerializationV2.h"
 #include "WalletErrors.h"
 #include "WalletUtils.h"
+
+#include <Utilities/Utilities.h>
 
 using namespace Common;
 using namespace Crypto;
@@ -321,7 +324,7 @@ void WalletGreen::initWithKeys(const std::string& path, const std::string& passw
   ContainerStorage newStorage(path, Common::FileMappedVectorOpenMode::CREATE, sizeof(ContainerStoragePrefix));
   ContainerStoragePrefix* prefix = reinterpret_cast<ContainerStoragePrefix*>(newStorage.prefix());
   prefix->version = static_cast<uint8_t>(WalletSerializerV2::SERIALIZATION_VERSION);
-  prefix->nextIv = Crypto::rand<Crypto::chacha8_iv>();
+  prefix->nextIv = Crypto::randomChachaIV();
 
   Crypto::generate_chacha8_key(password, m_key);
 
@@ -333,7 +336,7 @@ void WalletGreen::initWithKeys(const std::string& path, const std::string& passw
   }
   else
   {
-    creationTimestamp = scanHeightToTimestamp(scanHeight);
+    creationTimestamp = Utilities::scanHeightToTimestamp(scanHeight);
   }
 
   prefix->encryptedViewKeys = encryptKeyPair(viewPublicKey, viewSecretKey, creationTimestamp, m_key, prefix->nextIv);
@@ -676,7 +679,7 @@ void WalletGreen::copyContainerStoragePrefix(ContainerStorage& src, const chacha
   ContainerStoragePrefix* srcPrefix = reinterpret_cast<ContainerStoragePrefix*>(src.prefix());
   ContainerStoragePrefix* dstPrefix = reinterpret_cast<ContainerStoragePrefix*>(dst.prefix());
   dstPrefix->version = srcPrefix->version;
-  dstPrefix->nextIv = Crypto::rand<chacha8_iv>();
+  dstPrefix->nextIv = Crypto::randomChachaIV();
 
   Crypto::PublicKey publicKey;
   Crypto::SecretKey secretKey;
@@ -987,7 +990,7 @@ std::vector<std::string> WalletGreen::doCreateAddressList(const std::vector<NewA
      lower height to get the blocks we need. */
   if (!walletsIndex.empty() && !newAddress)
   {
-      uint64_t timestamp = scanHeightToTimestamp(scanHeight);
+      uint64_t timestamp = Utilities::scanHeightToTimestamp(scanHeight);
 
       time_t minTimestamp = std::numeric_limits<time_t>::max();
 
@@ -1086,7 +1089,7 @@ std::string WalletGreen::addWallet(const NewAddressData &addressData, uint64_t s
     }
     else
     {
-        sub.syncStart.timestamp = scanHeightToTimestamp(scanHeight);
+        sub.syncStart.timestamp = Utilities::scanHeightToTimestamp(scanHeight);
     }
 
     m_containerStorage.push_back(encryptKeyPair(spendPublicKey, spendSecretKey, sub.syncStart.timestamp));
@@ -1151,42 +1154,6 @@ CryptoNote::BlockDetails WalletGreen::getBlock(const uint64_t blockHeight)
     return block;
 }
 
-uint64_t WalletGreen::scanHeightToTimestamp(const uint64_t scanHeight)
-{
-    if (scanHeight == 0)
-    {
-        return 0;
-    }
-
-    /* Get the block timestamp from the node if the node has it */
-    uint64_t timestamp = static_cast<uint64_t>(getBlock(scanHeight).timestamp);
-
-    if (timestamp != 0)
-    {
-        return timestamp;
-    }
-
-    /* Get the amount of seconds since the blockchain launched */
-    uint64_t secondsSinceLaunch = scanHeight *
-                                  CryptoNote::parameters::DIFFICULTY_TARGET;
-
-    /* Add a bit of a buffer in case of difficulty weirdness, blocks coming
-       out too fast */
-    secondsSinceLaunch *= 0.95;
-
-    /* Get the genesis block timestamp and add the time since launch */
-    timestamp = CryptoNote::parameters::GENESIS_BLOCK_TIMESTAMP
-              + secondsSinceLaunch;
-
-    /* Timestamp in the future */
-    if (timestamp >= static_cast<uint64_t>(std::time(nullptr)))
-    {
-        return getCurrentTimestampAdjusted();
-    }
-
-    return timestamp;
-}
-
 uint64_t WalletGreen::getCurrentTimestampAdjusted()
 {
     /* Get the current time as a unix timestamp */
@@ -1216,7 +1183,7 @@ void WalletGreen::reset(const uint64_t scanHeight)
     /* Grab the wallet encrypted prefix */
     auto* prefix = reinterpret_cast<ContainerStoragePrefix*>(m_containerStorage.prefix());
 
-    uint64_t newTimestamp = scanHeightToTimestamp(scanHeight);
+    uint64_t newTimestamp = Utilities::scanHeightToTimestamp(scanHeight);
 
     /* Reencrypt with the new creation timestamp so we rescan from here when we relaunch */
     prefix->encryptedViewKeys = encryptKeyPair(m_viewPublicKey, m_viewSecretKey, newTimestamp);
@@ -2227,7 +2194,7 @@ std::unique_ptr<CryptoNote::ITransaction> WalletGreen::makeTransaction(const std
     }
   }
 
-  std::shuffle(amountsToAddresses.begin(), amountsToAddresses.end(), std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+  std::shuffle(amountsToAddresses.begin(), amountsToAddresses.end(), Random::generator());
   std::sort(amountsToAddresses.begin(), amountsToAddresses.end(), [] (const AmountToAddress& left, const AmountToAddress& right) {
     return left.second < right.second;
   });
@@ -2292,6 +2259,16 @@ size_t WalletGreen::validateSaveAndSendTransaction(const ITransactionReader& tra
   if (!fromBinaryArray(cryptoNoteTransaction, transactionData)) {
     m_logger(ERROR, BRIGHT_RED) << "Failed to deserialize created transaction. Transaction hash " << transaction.getTransactionHash();
     throw std::system_error(make_error_code(error::INTERNAL_WALLET_ERROR), "Failed to deserialize created transaction");
+  }
+
+  if (cryptoNoteTransaction.extra.size() >= CryptoNote::parameters::MAX_EXTRA_SIZE_V2)
+  {
+      m_logger(ERROR, BRIGHT_RED) << "Transaction extra is too large. Allowed: "
+                                  << CryptoNote::parameters::MAX_EXTRA_SIZE_V2
+                                  << ", actual: " << cryptoNoteTransaction.extra.size()
+                                  << ".";
+
+      throw std::system_error(make_error_code(error::EXTRA_TOO_LARGE), "Transaction extra too large");
   }
 
   uint64_t fee = transaction.getInputTotalAmount() - transaction.getOutputTotalAmount();
@@ -2403,7 +2380,7 @@ uint64_t WalletGreen::selectTransfers(
     }
   }
 
-  ShuffleGenerator<size_t, Crypto::random_engine<size_t>> indexGenerator(walletOuts.size());
+  ShuffleGenerator<size_t> indexGenerator(walletOuts.size());
   while (foundMoney < neededMoney && !indexGenerator.empty()) {
     auto& out = walletOuts[indexGenerator()];
     foundMoney += out.second.amount;
@@ -2411,7 +2388,7 @@ uint64_t WalletGreen::selectTransfers(
   }
 
   if (dust && !dustOutputs.empty()) {
-    ShuffleGenerator<size_t, Crypto::random_engine<size_t>> dustIndexGenerator(dustOutputs.size());
+    ShuffleGenerator<size_t> dustIndexGenerator(dustOutputs.size());
     do {
       auto& out = dustOutputs[dustIndexGenerator()];
       foundMoney += out.second.amount;
@@ -3351,7 +3328,7 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(c
   //now, pick the bucket
   std::vector<uint8_t> bucketNumbers(bucketSizes.size());
   std::iota(bucketNumbers.begin(), bucketNumbers.end(), 0);
-  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), Random::generator());
   size_t bucketNumberIndex = 0;
   for (; bucketNumberIndex < bucketNumbers.size(); ++bucketNumberIndex) {
     if (bucketSizes[bucketNumbers[bucketNumberIndex]] >= minInputCount) {
@@ -3388,7 +3365,7 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(c
     return selectedOuts;
   }
 
-  ShuffleGenerator<size_t, Crypto::random_engine<size_t>> generator(selectedOuts.size());
+  ShuffleGenerator<size_t> generator(selectedOuts.size());
   std::vector<WalletGreen::OutputToTransfer> trimmedSelectedOuts;
   trimmedSelectedOuts.reserve(maxInputCount);
   for (size_t i = 0; i < maxInputCount; ++i) {

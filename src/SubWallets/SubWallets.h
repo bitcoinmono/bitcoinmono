@@ -155,7 +155,9 @@ class SubWallets
 
         bool isViewWallet() const;
 
-        void reset(const uint64_t scanHeight);
+        void reset(
+            const uint64_t startHeight,
+            const uint64_t startTimestamp);
 
         std::vector<WalletTypes::Transaction> getTransactions() const;
 

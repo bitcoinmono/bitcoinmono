@@ -12,10 +12,16 @@
 // LWMA-2 difficulty algorithm 
 // Copyright (c) 2017-2018 Zawy, MIT License
 // https://github.com/zawy12/difficulty-algorithms/issues/3
-uint64_t nextDifficulty(std::vector<uint64_t> timestamps, std::vector<uint64_t> cumulativeDifficulties)
+uint64_t nextDifficulty(std::vector<uint64_t> timestamps, std::vector<uint64_t> cumulativeDifficulties, const uint64_t blockHeight)
 {
     int64_t T = CryptoNote::parameters::DIFFICULTY_TARGET;
-    int64_t N = CryptoNote::parameters::DIFFICULTY_WINDOW;
+
+    if (blockHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT)
+    {
+        T = CryptoNote::parameters::DIFFICULTY_TARGET_V2;
+    }
+
+    const int64_t N = CryptoNote::parameters::DIFFICULTY_WINDOW;
     int64_t L(0), ST, sum_3_ST(0), next_D, prev_D;
 
     /* If we are starting up, returning a difficulty guess. If you are a

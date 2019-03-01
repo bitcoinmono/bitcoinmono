@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 // 
 // Please see the included LICENSE file for more information.
 
@@ -10,6 +10,8 @@
 #include <Common/FileSystemShim.h>
 
 #include <config/CryptoNoteConfig.h>
+
+#include <crypto/random.h>
 
 #include <CryptoNoteCore/Account.h>
 #include <CryptoNoteCore/CryptoNoteTools.h>
@@ -576,7 +578,7 @@ Error WalletBackend::unsafeSave() const
     byte salt[16];
 
     /* Generate 16 random bytes for the salt */
-    Crypto::generate_random_bytes(16, salt);
+    Random::randomBytes(16, salt);
 
     /* Using SHA256 as the algorithm */
     CryptoPP::PKCS5_PBKDF2_HMAC<CryptoPP::SHA256> pbkdf2;
@@ -683,11 +685,12 @@ std::tuple<Error, Crypto::Hash> WalletBackend::sendTransactionAdvanced(
     const uint64_t fee,
     const std::string paymentID,
     const std::vector<std::string> subWalletsToTakeFrom,
-    const std::string changeAddress)
+    const std::string changeAddress,
+    const uint64_t unlockTime)
 {
     return SendTransaction::sendTransactionAdvanced(
         destinations, mixin, fee, paymentID, subWalletsToTakeFrom,
-        changeAddress, m_daemon, m_subWallets
+        changeAddress, m_daemon, m_subWallets, unlockTime
     );
 }
 
@@ -709,22 +712,12 @@ std::tuple<Error, Crypto::Hash> WalletBackend::sendFusionTransactionAdvanced(
 void WalletBackend::reset(uint64_t scanHeight, uint64_t timestamp)
 {
     m_syncRAIIWrapper->pauseSynchronizerToRunFunction(
-    [this, scanHeight, timestamp]() mutable {
-        /* Though the wallet synchronizer can support both a timestamp and a
-           scanheight, we need a fixed scan height to cut transactions from.
-           Since a transaction in block 10 could have a timestamp before a
-           transaction in block 9, we can't rely on timestamps to reset accurately. */
-        if (timestamp != 0)
-        {
-            scanHeight = Utilities::timestampToScanHeight(timestamp);
-            timestamp = 0;
-        }
-
+    [this, scanHeight, timestamp]() {
         /* Empty the sync status and reset the start height */
-        m_walletSynchronizer->reset(scanHeight);
+        m_walletSynchronizer->reset(scanHeight, timestamp);
 
         /* Reset transactions, inputs, etc */
-        m_subWallets->reset(scanHeight);
+        m_subWallets->reset(scanHeight, timestamp);
 
         /* Save the resetted wallet - don't need safe save, already stopped wallet
            synchronizer */
@@ -762,10 +755,10 @@ std::tuple<Error, std::string> WalletBackend::importSubWallet(
             if (currentHeight >= scanHeight)
             {
                 /* Empty the sync status and reset the start height */
-                m_walletSynchronizer->reset(scanHeight);
+                m_walletSynchronizer->reset(scanHeight, 0);
 
                 /* Reset transactions, inputs, etc */
-                m_subWallets->reset(scanHeight);
+                m_subWallets->reset(scanHeight, 0);
             }
         }
 
@@ -793,10 +786,10 @@ std::tuple<Error, std::string> WalletBackend::importViewSubWallet(
             if (currentHeight >= scanHeight)
             {
                 /* Empty the sync status and reset the start height */
-                m_walletSynchronizer->reset(scanHeight);
+                m_walletSynchronizer->reset(scanHeight, 0);
 
                 /* Reset transactions, inputs, etc */
-                m_subWallets->reset(scanHeight);
+                m_subWallets->reset(scanHeight, 0);
             }
         }
 

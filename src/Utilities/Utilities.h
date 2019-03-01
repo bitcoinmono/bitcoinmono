@@ -37,8 +37,6 @@ namespace Utilities
 
     uint64_t scanHeightToTimestamp(const uint64_t scanHeight);
 
-    uint64_t timestampToScanHeight(const uint64_t timestamp);
-
     uint64_t getCurrentTimestampAdjusted();
 
     bool isSubtractionSafe(int64_t currentValue, uint64_t transferAmount);
