@@ -13,6 +13,8 @@ LICENSES:
 
 Please see the included LICENSE file for more information.
 
+FOR DEVS : If you fork the repo to make your own coin, take a look at CryptoNoteConfig_new_coin.h for simplicity
+
 ### Installing
 
 We offer binary images of the latest releases here: https://github.com/bitcoinmono/bitcoinmono/releases
