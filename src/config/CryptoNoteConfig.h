@@ -42,7 +42,7 @@ static_assert(EMISSION_SPEED_FACTOR    <= 8 * sizeof(uint64_t), "Bad EMISSION_SP
 static_assert(EMISSION_SPEED_FACTOR_V2 <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 /* Height to swap to EMISSION_SPEED_FACTOR_V2 */
-const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 250000; // nothing change at 50k
+const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 250000; // block reward reduce to 16 and less emission at block 250k
 
 /* Premine amount */
 const uint64_t GENESIS_BLOCK_REWARD                          = UINT64_C(0);
