@@ -1,5 +1,18 @@
 ![image](https://github.com/bitcoinmono/bitcoinmono/raw/master/src/BitcoinMonoConfig/config/logo2.png)
 
+```
+LICENSES:
+
+// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers 
+// Copyright (c) 2014-2018, The Monero Project 
+// Copyright (c) 2018-2019, The TurtleCoin Developers 
+// Copyright (c) 2018-2019, The DeroGold Assosiation 
+// Copyright (c) 2019-2019, The BitcoinMono Developers 
+// Copyright (c) 2019-2019, The Tellurium Community & Developers.
+```
+
+Please see the included LICENSE file for more information.
+
 ### Installing
 
 We offer binary images of the latest releases here: https://github.com/bitcoinmono/bitcoinmono/releases
@@ -199,16 +212,8 @@ The binaries will be in the `src` folder when you are complete.
 Cryptonote Developers, Bytecoin Developers, Monero Developers, Forknote Project, TurtleCoin Community, DeroGold Developers,
 
 #### Donation
-BTCM donation : btcmzUQqQDwXLxUxxHsvGxJJzzqhKJnevgktgQLq18T96Nw3nAv4zG5SSxkoj7vq8gVTPzdicTXtsSHL8Fjn4Tf2dDWghSJhmCp
+BTC donation : 37D14p2miypXtmpFoWRbuVcsGAMHvL7p4g
+LTC donation : LUupRmfN8n62D4WDzp6c22uLLt3kLk3WTr
+DOGE donation : D8Pqhy8yEirqx95Me623kXwLoFTkGepbmY
 
-#### Copypasta for license when editing files
-
-```
-// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2014-2020, The Monero Project
-// Copyright (c) 2018-2020, The TurtleCoin Developers
-// Copyright (c) 2018-2020, The DeroGold Developers
-// Copyright (c) 2019, The BitcoinMono Developers
-// 
-// Please see the included LICENSE file for more information.
-```
+#### Copypasta for license when editing files at the beginning of readme

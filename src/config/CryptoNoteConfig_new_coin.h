@@ -7,8 +7,6 @@
 //
 // Please see the included LICENSE file for more information.
 
-// >> IF YOU FORK AND MAKE YOUR OWN COIN, USE CryptoNoteConfig_new_coin.h <<
-
 #pragma once
 
 #include <cstddef>
@@ -21,7 +19,7 @@
 namespace CryptoNote {
 namespace parameters {
 
-const uint64_t DIFFICULTY_TARGET                             = 50; // seconds
+const uint64_t DIFFICULTY_TARGET                             = 50; // block time in seconds --> change to your number, better > 40s
 const uint64_t DIFFICULTY_TARGET_V2                          = DIFFICULTY_TARGET; // seconds
 
 /* Height to swap to DIFFICULTY_TARGET_V2 */
@@ -30,7 +28,7 @@ const uint64_t DIFFICULTY_TARGET_V2_HEIGHT                   = 0; // unused now
 const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER                   = 500000000;
 const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
-const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 3771344;  // btcm
+const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 3771344;  // btcm --> check https://cryptonotestarter.org/tools.html
 const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 50;
 const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 6 * DIFFICULTY_TARGET;
 
@@ -39,14 +37,14 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 11;
 // MONEY_SUPPLY - total number coins to be generated
 const uint64_t MONEY_SUPPLY                                  = UINT64_C(10000000000000000); // 1 trilion
 
-const uint32_t EMISSION_SPEED_FACTOR                         = 20;
-const uint32_t EMISSION_SPEED_FACTOR_V2                      = 24; // block reward reduce to 16 and less emission at block 250k
+const uint32_t EMISSION_SPEED_FACTOR                         = 20; // better to use 23,24 or 25 https://cryptonotestarter.org/tools.html
+const uint32_t EMISSION_SPEED_FACTOR_V2                      = EMISSION_SPEED_FACTOR; // unused now
 
 static_assert(EMISSION_SPEED_FACTOR    <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 static_assert(EMISSION_SPEED_FACTOR_V2 <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 /* Height to swap to EMISSION_SPEED_FACTOR_V2 */
-const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 250000; // block reward reduce to 16 and less emission at block 250k
+const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 0; // unused now
 
 /* Premine amount */
 const uint64_t GENESIS_BLOCK_REWARD                          = UINT64_C(0);
@@ -109,11 +107,11 @@ const uint64_t MAX_BLOCK_SIZE_GROWTH_SPEED_NUMERATOR         = 100 * 1024;
 const uint64_t MAX_BLOCK_SIZE_GROWTH_SPEED_DENOMINATOR       = 365 * 24 * 60 * 60 / DIFFICULTY_TARGET;
 const uint64_t MAX_EXTRA_SIZE                                = 140000;
 const uint64_t MAX_EXTRA_SIZE_V2                             = 1024;
-const uint64_t MAX_EXTRA_SIZE_V2_HEIGHT                      = 50000;
+const uint64_t MAX_EXTRA_SIZE_V2_HEIGHT                      = 0; // new coin 0
 
 /* For new projects forked from this code base, this value should be
    changed to 0 to prevent a possible transaction bloat exploit */
-const uint64_t TRANSACTION_SIGNATURE_COUNT_VALIDATION_HEIGHT = 50000;
+const uint64_t TRANSACTION_SIGNATURE_COUNT_VALIDATION_HEIGHT = 0; // new coin 0
 
 const uint64_t CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS     = 1;
 const uint64_t CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS    = DIFFICULTY_TARGET * CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS;
@@ -141,8 +139,6 @@ static_assert(UPGRADE_VOTING_WINDOW > 1, "Bad UPGRADE_VOTING_WINDOW");
 /* Block heights we are going to have hard forks at */
 const uint64_t FORK_HEIGHTS[] =
 {
-    50000, // fork to fix tx size and count bloat
-	250000 // fork to reduce emission and block reward
 };
 
 /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
@@ -169,7 +165,7 @@ const char     P2P_NET_DATA_FILENAME[]                       = "p2pstate.bin";
 const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json";
 } // parameters
 
-const char     CRYPTONOTE_NAME[]                             = "BitcoinMono";
+const char     CRYPTONOTE_NAME[]                             = "YourCoinName";
 
 const uint8_t  TRANSACTION_VERSION_1                         =  1;
 const uint8_t  TRANSACTION_VERSION_2                         =  2;
@@ -179,8 +175,8 @@ const uint8_t  BLOCK_MAJOR_VERSION_1                         =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_2                         =  2;
 const uint8_t  BLOCK_MAJOR_VERSION_3                         =  3;
 const uint8_t  BLOCK_MAJOR_VERSION_4                         =  4;
-const uint8_t  BLOCK_MAJOR_VERSION_5                         =  5;
-const uint8_t  BLOCK_MAJOR_VERSION_6                         =  6;
+const uint8_t  BLOCK_MAJOR_VERSION_5                         =  5; // here is our current version
+const uint8_t  BLOCK_MAJOR_VERSION_6                         =  6; // for future use and avoid mistake with block height
 const uint8_t  BLOCK_MAJOR_VERSION_7                         =  7;
 const uint8_t  BLOCK_MAJOR_VERSION_8                         =  8;
 const uint8_t  BLOCK_MAJOR_VERSION_9                         =  9;
@@ -193,16 +189,16 @@ const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by def
 const uint64_t BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  100;    //by default, blocks count in blocks downloading
 const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  1000;
 
-const int      P2P_DEFAULT_PORT                              =  11357;
-const int      RPC_DEFAULT_PORT                              =  11358;
-const int      SERVICE_DEFAULT_PORT                          =  11359;
+const int      P2P_DEFAULT_PORT                              =  113aa; // aa bb cc is your number of choice
+const int      RPC_DEFAULT_PORT                              =  113bb;
+const int      SERVICE_DEFAULT_PORT                          =  113cc;
 
 const size_t   P2P_LOCAL_WHITE_PEERLIST_LIMIT                =  1000;
 const size_t   P2P_LOCAL_GRAY_PEERLIST_LIMIT                 =  5000;
 
 // P2P Network Configuration Section - This defines our current P2P network version
 // and the minimum version for communication between nodes
-const uint8_t  P2P_CURRENT_VERSION                           = 1;
+const uint8_t  P2P_CURRENT_VERSION                           = 0;
 const uint8_t  P2P_MINIMUM_VERSION                           = 0;
 
 // This defines the minimum P2P version required for lite blocks propogation
@@ -229,7 +225,7 @@ const uint64_t DATABASE_READ_BUFFER_MB_DEFAULT_SIZE          = 32;
 const uint32_t DATABASE_DEFAULT_MAX_OPEN_FILES               = 100;
 const uint16_t DATABASE_DEFAULT_BACKGROUND_THREADS_COUNT     = 2;
 
-const char     LATEST_VERSION_URL[]                          = "https://github.com/bitcoinmono/bitcoinmono/releases";
+const char     LATEST_VERSION_URL[]                          = "https://github.com/bitcoinmono/bitcoinmono/releases"; // change to your link
 const std::string LICENSE_URL                                = "https://github.com/bitcoinmono/bitcoinmono/blob/master/LICENSE";
 const static   boost::uuids::uuid CRYPTONOTE_NETWORK         =
 {
@@ -237,8 +233,7 @@ const static   boost::uuids::uuid CRYPTONOTE_NETWORK         =
 };
 
 const char* const SEED_NODES[] = {
-  "212.47.251.15:11357", // Europe - FR
-  "45.77.117.59:11357", // US
-  "3.1.106.35:11357" // Asia - SG
+  "xx.xx.xx:113aa", // Your 1st seed node
+  "yy.yy.yy.yy:113bb", // Your 2nd seed node
 };
 } // CryptoNote
