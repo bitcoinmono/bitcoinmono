@@ -21,7 +21,7 @@ const uint64_t DIFFICULTY_TARGET                             = 50; // seconds
 const uint64_t DIFFICULTY_TARGET_V2                          = DIFFICULTY_TARGET; // seconds
 
 /* Height to swap to DIFFICULTY_TARGET_V2 */
-const uint64_t DIFFICULTY_TARGET_V2_HEIGHT                   = 50000; // nothing change at 50k
+const uint64_t DIFFICULTY_TARGET_V2_HEIGHT                   = 0; // unused now
 
 const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER                   = 500000000;
 const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
@@ -36,13 +36,13 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 11;
 const uint64_t MONEY_SUPPLY                                  = UINT64_C(10000000000000000); // 1 trilion
 
 const uint32_t EMISSION_SPEED_FACTOR                         = 20;
-const uint32_t EMISSION_SPEED_FACTOR_V2                      = EMISSION_SPEED_FACTOR; // nothing change at 50k
+const uint32_t EMISSION_SPEED_FACTOR_V2                      = 24; // block reward reduce to 16 and less emission at block 250k
 
 static_assert(EMISSION_SPEED_FACTOR    <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 static_assert(EMISSION_SPEED_FACTOR_V2 <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 /* Height to swap to EMISSION_SPEED_FACTOR_V2 */
-const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 50000; // nothing change at 50k
+const uint64_t EMISSION_SPEED_FACTOR_V2_HEIGHT               = 250000; // nothing change at 50k
 
 /* Premine amount */
 const uint64_t GENESIS_BLOCK_REWARD                          = UINT64_C(0);
@@ -138,6 +138,7 @@ static_assert(UPGRADE_VOTING_WINDOW > 1, "Bad UPGRADE_VOTING_WINDOW");
 const uint64_t FORK_HEIGHTS[] =
 {
     50000, // fork to fix tx size and count bloat
+	250000 // fork to reduce emission and block reward
 };
 
 /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
