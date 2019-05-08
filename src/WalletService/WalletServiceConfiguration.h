@@ -32,7 +32,7 @@ namespace PaymentService {
       unregisterService = false;
       printAddresses = false;
       syncFromZero = false;
-      initTimeout = 10;
+      initTimeout = 30; // 10s --> 30s to avoid disconnection when daemon is under heavy load
     }
 
     std::string daemonAddress;
