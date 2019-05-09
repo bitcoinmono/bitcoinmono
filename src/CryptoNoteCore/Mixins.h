@@ -25,6 +25,13 @@ namespace CryptoNote
         uint64_t maxMixin = CryptoNote::parameters::MAXIMUM_MIXIN_V0;
         uint64_t defaultMixin = CryptoNote::parameters::DEFAULT_MIXIN_V0;
 
+		if (height >= CryptoNote::parameters::MIXIN_LIMITS_V1_HEIGHT)
+        {
+            minMixin = CryptoNote::parameters::MINIMUM_MIXIN_V1;
+            maxMixin = CryptoNote::parameters::MAXIMUM_MIXIN_V1;
+            defaultMixin = CryptoNote::parameters::DEFAULT_MIXIN_V1;
+        }
+		
         return {minMixin, maxMixin, defaultMixin};
       }
 
