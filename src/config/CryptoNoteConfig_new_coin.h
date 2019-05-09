@@ -90,7 +90,7 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(1000); /
 
 /* This section defines our minimum and maximum mixin counts required for transactions */
 const uint64_t MINIMUM_MIXIN_V0                              = 0;
-const uint64_t MAXIMUM_MIXIN_V0                              = 7;
+const uint64_t MAXIMUM_MIXIN_V0                              = 3;
 
 /* The mixin to use by default with zedwallet and turtle-service */
 const uint64_t DEFAULT_MIXIN_V0                              = 0; // temporary 0
