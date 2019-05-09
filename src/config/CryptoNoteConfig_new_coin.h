@@ -92,8 +92,15 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(1000); /
 const uint64_t MINIMUM_MIXIN_V0                              = 0;
 const uint64_t MAXIMUM_MIXIN_V0                              = 3;
 
+const uint64_t MINIMUM_MIXIN_V1                              = MINIMUM_MIXIN_V0;
+const uint64_t MAXIMUM_MIXIN_V1                              = MAXIMUM_MIXIN_V0;
+
+/* The heights to activate the mixin limits at */
+const uint32_t MIXIN_LIMITS_V1_HEIGHT                        = 0; // unused now
+
 /* The mixin to use by default with zedwallet and turtle-service */
 const uint64_t DEFAULT_MIXIN_V0                              = 0; // temporary 0
+const uint64_t DEFAULT_MIXIN_V1                              = DEFAULT_MIXIN_V0; // nothing changes
 
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(0);
 
