@@ -16,12 +16,13 @@
 #include "Common/ShuffleGenerator.h"
 
 #include "CryptoNoteCore/CryptoNoteBasicImpl.h"
-#include "CryptoNoteCore/CryptoNoteSerialization.h"
-#include "CryptoNoteCore/CryptoNoteTools.h"
+#include "Common/CryptoNoteTools.h"
 #include "CryptoNoteCore/BlockchainStorage.h"
-#include "CryptoNoteCore/TransactionExtra.h"
+#include "Common/TransactionExtra.h"
 
+#include "Serialization/CryptoNoteSerialization.h"
 #include "Serialization/SerializationOverloads.h"
+
 #include "TransactionValidatiorState.h"
 
 namespace CryptoNote {
@@ -809,6 +810,18 @@ bool BlockchainCache::isTransactionSpendTimeUnlocked(uint64_t unlockTime, uint32
     return blockIndex + currency.lockedTxAllowedDeltaBlocks() >= unlockTime;
   }
 
+  if (blockIndex >= CryptoNote::parameters::TRANSACTION_INPUT_BLOCKTIME_VALIDATION_HEIGHT)
+  {
+    /* Get the last block timestamp from an existing method call */
+    const std::vector<uint64_t> lastBlockTimestamps = getLastTimestamps(1);
+
+    /* Pop the last timestamp off the vector */
+    const uint64_t lastBlockTimestamp = lastBlockTimestamps.at(0);
+
+    /* Compare our delta seconds plus our last time stamp against the unlock time */
+    return lastBlockTimestamp + currency.lockedTxAllowedDeltaSeconds() >= unlockTime;
+  }
+
   // interpret as time
   return static_cast<uint64_t>(time(nullptr)) + currency.lockedTxAllowedDeltaSeconds() >= unlockTime;
 }
@@ -1092,9 +1105,9 @@ uint64_t BlockchainCache::getDifficultyForNextBlock() const {
 uint64_t BlockchainCache::getDifficultyForNextBlock(uint32_t blockIndex) const {
   assert(blockIndex <= getTopBlockIndex());
   uint8_t nextBlockMajorVersion = getBlockMajorVersionForHeight(blockIndex+1);
-  auto timestamps = getLastTimestamps(CryptoNote::parameters::DIFFICULTY_BLOCKS_COUNT, blockIndex, skipGenesisBlock);
+  auto timestamps = getLastTimestamps(currency.difficultyBlocksCountByBlockVersion(nextBlockMajorVersion, blockIndex), blockIndex, skipGenesisBlock);
   auto commulativeDifficulties =
-      getLastCumulativeDifficulties(CryptoNote::parameters::DIFFICULTY_BLOCKS_COUNT, blockIndex, skipGenesisBlock);
+      getLastCumulativeDifficulties(currency.difficultyBlocksCountByBlockVersion(nextBlockMajorVersion, blockIndex), blockIndex, skipGenesisBlock);
   return currency.getNextDifficulty(nextBlockMajorVersion, blockIndex, std::move(timestamps), std::move(commulativeDifficulties));
 }
 

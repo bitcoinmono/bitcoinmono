@@ -9,6 +9,7 @@ LICENSES:
 // Copyright (c) 2018-2019, The DeroGold Assosiation 
 // Copyright (c) 2019-2019, The BitcoinMono Developers 
 // Copyright (c) 2019-2019, The Tellurium Community & Developers.
+// Copyright (c) 2018-2019, The WrkzCoin developers
 ```
 
 Please see the included LICENSE file for more information.

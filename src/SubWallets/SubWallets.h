@@ -155,9 +155,7 @@ class SubWallets
 
         bool isViewWallet() const;
 
-        void reset(
-            const uint64_t startHeight,
-            const uint64_t startTimestamp);
+        void reset(const uint64_t scanHeight);
 
         std::vector<WalletTypes::Transaction> getTransactions() const;
 
@@ -188,6 +186,8 @@ class SubWallets
 
         std::vector<std::tuple<std::string, uint64_t, uint64_t>> getBalances(
             const uint64_t currentHeight) const;
+
+        void pruneSpentInputs(const uint64_t pruneHeight);
 
         /////////////////////////////
         /* Public member variables */
@@ -231,6 +231,9 @@ class SubWallets
 
         /* Transaction private keys of sent transactions, used for auditing */
         std::unordered_map<Crypto::Hash, Crypto::SecretKey> m_transactionPrivateKeys;
+
+        /* A mapping of key images to the subwallet public spend key that owns them */
+        std::unordered_map<Crypto::KeyImage, Crypto::PublicKey> m_keyImageOwners;
 
         /* Need a mutex for accessing inputs, transactions, and locked
            transactions, etc as these are modified on multiple threads */

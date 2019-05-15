@@ -1,5 +1,5 @@
-// Copyright (c) 2018, The TurtleCoin Developers
-// 
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+//
 // Please see the included LICENSE file for more information.
 
 #pragma once
@@ -10,9 +10,16 @@
 
 #include <cryptopp/modes.h>
 
+enum WalletState
+{
+    WalletMustBeOpen,
+    WalletMustBeClosed,
+    DoesntMatter,
+};
+
 /* Functions the same as body.at(key).get<T>(), but gives better error messages */
 template<typename T>
-T tryGetJsonValue(const nlohmann::json &body, const std::string key)
+T getJsonValue(const nlohmann::json &body, const std::string key)
 {
     if (body.find(key) == body.end())
     {
@@ -58,7 +65,7 @@ class ApiDispatcher
 
         /* Stops the server */
         void stop();
-        
+
     private:
 
         //////////////////////////////
@@ -70,7 +77,7 @@ class ApiDispatcher
         void middleware(
             const httplib::Request &req,
             httplib::Response &res,
-            const bool walletMustBeOpen,
+            const WalletState walletState,
             const bool viewWalletsPermitted,
             std::function<std::tuple<Error, uint16_t>
                 (const httplib::Request &req,
@@ -86,7 +93,7 @@ class ApiDispatcher
         ///////////////////
         /* POST REQUESTS */
         ///////////////////
-        
+
         /* Opens a wallet */
         std::tuple<Error, uint16_t> openWallet(
             const httplib::Request &req,
@@ -131,6 +138,11 @@ class ApiDispatcher
 
         /* Imports a view only address with a public spend key */
         std::tuple<Error, uint16_t> importViewAddress(
+            const httplib::Request &req,
+            httplib::Response &res,
+            const nlohmann::json &body);
+
+        std::tuple<Error, uint16_t> validateAddress(
             const httplib::Request &req,
             httplib::Response &res,
             const nlohmann::json &body);
@@ -260,7 +272,7 @@ class ApiDispatcher
             const httplib::Request &req,
             httplib::Response &res,
             const nlohmann::json &body) const;
-            
+
         std::tuple<Error, uint16_t> getTransactionsFromHeightToHeight(
             const httplib::Request &req,
             httplib::Response &res,
@@ -270,7 +282,7 @@ class ApiDispatcher
             const httplib::Request &req,
             httplib::Response &res,
             const nlohmann::json &body) const;
-            
+
         std::tuple<Error, uint16_t> getTransactionsFromHeightToHeightWithAddress(
             const httplib::Request &req,
             httplib::Response &res,
@@ -314,8 +326,8 @@ class ApiDispatcher
         /* END OF API FUNCTIONS */
         //////////////////////////
 
-        /* Extracts {host, port, filename, password}, from body */
-        std::tuple<std::string, uint16_t, std::string, std::string>
+        /* Extracts {host, port, ssl, filename, password}, from body */
+        std::tuple<std::string, uint16_t, bool, std::string, std::string>
             getDefaultWalletParams(const nlohmann::json body) const;
 
         /* Assert the wallet is not a view only wallet */
@@ -334,7 +346,7 @@ class ApiDispatcher
         void publicKeysToAddresses(nlohmann::json &j) const;
 
         std::string hashPassword(const std::string password) const;
-        
+
         //////////////////////////////
         /* Private member variables */
         //////////////////////////////
