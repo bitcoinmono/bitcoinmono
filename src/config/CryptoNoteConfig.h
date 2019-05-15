@@ -93,23 +93,23 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(1000); /
 const uint64_t MINIMUM_MIXIN_V1                              = 0;
 const uint64_t MAXIMUM_MIXIN_V1                              = 7;
 
-const uint64_t MINIMUM_MIXIN_V2                              = MINIMUM_MIXIN_V1; // unused
-const uint64_t MAXIMUM_MIXIN_V2                              = MAXIMUM_MIXIN_V1; // unused
+const uint64_t MINIMUM_MIXIN_V2                              = 0; // 250k fork
+const uint64_t MAXIMUM_MIXIN_V2                              = 3; // 250k fork
 
-const uint64_t MINIMUM_MIXIN_V3                              = MINIMUM_MIXIN_V1; // unused
-const uint64_t MAXIMUM_MIXIN_V3                              = MAXIMUM_MIXIN_V1; // unused
+const uint64_t MINIMUM_MIXIN_V3                              = MINIMUM_MIXIN_V2; // unused
+const uint64_t MAXIMUM_MIXIN_V3                              = MAXIMUM_MIXIN_V2; // unused
 
 /* The heights to activate the mixin limits at */
 const uint32_t MIXIN_LIMITS_V1_HEIGHT                        = 0;
-const uint32_t MIXIN_LIMITS_V2_HEIGHT                        = MIXIN_LIMITS_V1_HEIGHT; // unused
-const uint32_t MIXIN_LIMITS_V3_HEIGHT                        = MIXIN_LIMITS_V1_HEIGHT; // unused
+const uint32_t MIXIN_LIMITS_V2_HEIGHT                        = 250000; // 250k fork
+const uint32_t MIXIN_LIMITS_V3_HEIGHT                        = MIXIN_LIMITS_V2_HEIGHT; // unused
 
 /* The mixin to use by default with zedwallet and turtle-service */
 /* DEFAULT_MIXIN_V0 is the mixin used before MIXIN_LIMITS_V1_HEIGHT is started */
 const uint64_t DEFAULT_MIXIN_V0                              = 0;
 const uint64_t DEFAULT_MIXIN_V1                              = 0;
-const uint64_t DEFAULT_MIXIN_V2                              = DEFAULT_MIXIN_V0; // unused
-const uint64_t DEFAULT_MIXIN_V3                              = DEFAULT_MIXIN_V0; // unused
+const uint64_t DEFAULT_MIXIN_V2                              = 1; // 250k fork
+const uint64_t DEFAULT_MIXIN_V3                              = DEFAULT_MIXIN_V2; // unused
 
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(0);
 const uint64_t DEFAULT_DUST_THRESHOLD_V2                     = DEFAULT_DUST_THRESHOLD; // unused
