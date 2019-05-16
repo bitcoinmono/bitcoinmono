@@ -15,6 +15,7 @@ LICENSES:
 Please see the included LICENSE file for more information.
 
 FOR DEVS : If you fork the repo to make your own coin, take a look at CryptoNoteConfig_new_coin.h for simplicity
+FORKS SCHEDULE : BTCM will fork at block 250000.
 
 ### Installing
 
