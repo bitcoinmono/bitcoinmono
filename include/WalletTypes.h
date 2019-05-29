@@ -49,14 +49,6 @@ namespace WalletTypes
            CRYPTONOTE_MAX_BLOCK_NUMBER (In cryptonoteconfig) it is treated
            as a unix timestamp, else it is treated as a block height. */
         uint64_t unlockTime;
-
-        size_t memoryUsage() const
-        {
-            return keyOutputs.size() * sizeof(KeyOutput) + sizeof(keyOutputs) +
-                   sizeof(hash) +
-                   sizeof(transactionPublicKey) +
-                   sizeof(unlockTime);
-        }
     };
 
     /* A raw transaction, simply key images and amounts */
@@ -68,13 +60,6 @@ namespace WalletTypes
         /* The inputs used for a transaction, can be used to track outgoing
            transactions */
         std::vector<CryptoNote::KeyInput> keyInputs;
-
-        size_t memoryUsage() const
-        {
-            return paymentID.size() * sizeof(char) + sizeof(paymentID) +
-                   keyInputs.size() * sizeof(CryptoNote::KeyInput) + sizeof(keyInputs) +
-                   RawCoinbaseTransaction::memoryUsage();
-        }
     };
 
     /* A 'block' with the very basics needed to sync the transactions */
@@ -94,24 +79,6 @@ namespace WalletTypes
 
         /* The timestamp of the block */
         uint64_t blockTimestamp;
-
-        size_t memoryUsage() const
-        {
-            const size_t txUsage = std::accumulate(
-                transactions.begin(),
-                transactions.end(),
-                sizeof(transactions),
-                [](const auto acc, const auto item) {
-
-                return acc + item.memoryUsage();
-            });
-            
-            return coinbaseTransaction.memoryUsage() +
-                   txUsage +
-                   sizeof(blockHeight) +
-                   sizeof(blockHash) +
-                   sizeof(blockTimestamp);
-        }
     };
 
     struct TransactionInput

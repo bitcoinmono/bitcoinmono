@@ -126,7 +126,7 @@ script:
 # we do this in the script stage because this happens after the repo is cloned
 - if [[ "$LABEL" == "aarch64" ]]; then source scripts/prep-aarch64.sh ; fi
 - mkdir build && cd build
-- cmake -DARCH=default -DCMAKE_BUILD_TYPE=Release -DSTATIC=true ..
+- cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC=true ..
 - make -j2
 - if [[ "$LABEL" != "aarch64" ]]; then ./src/cryptotest ; fi
 
