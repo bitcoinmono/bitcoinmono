@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2018, The TurtleCoin Developers
 // 
 // Please see the included LICENSE file for more information.
 
@@ -9,6 +9,8 @@
 #include <mutex>
 
 #include <queue>
+
+#include <WalletBackend/Constants.h>
 
 template <typename T>
 class ThreadSafeQueue
@@ -33,6 +35,22 @@ class ThreadSafeQueue
             if (m_shouldStop)
             {
                 return false;
+            }
+
+            if (m_queue.size() >= Constants::MAXIMUM_SYNC_QUEUE_SIZE)
+            {
+                m_consumedBlock.wait(lock, [&]
+                {
+                    /* Stopping, don't block */
+                    if (m_shouldStop)
+                    {
+                        return true;
+                    }
+
+                    /* Wait for the queue size to fall below the maximum size
+                       before pushing our data */
+                    return m_queue.size() < Constants::MAXIMUM_SYNC_QUEUE_SIZE;
+                });
             }
 
             /* Add the item to the front of the queue */
@@ -74,7 +92,7 @@ class ThreadSafeQueue
                waking up */
             lock.unlock();
 
-            m_consumedData.notify_all();
+            m_consumedBlock.notify_all();
         }
         
         T getFirstItem(bool removeFromQueue)
@@ -122,7 +140,7 @@ class ThreadSafeQueue
                waking up */
             lock.unlock();
 
-            m_consumedData.notify_all();
+            m_consumedBlock.notify_all();
 			
             /* Return the item */
             return item;
@@ -155,7 +173,7 @@ class ThreadSafeQueue
             /* Make sure not to call .unlock() on the mutex here - it's
                undefined behaviour if it isn't locked. */
 
-            m_consumedData.notify_all();
+            m_consumedBlock.notify_all();
         }
 
         void start()
@@ -173,8 +191,8 @@ class ThreadSafeQueue
         /* Whether we have data or not */
         std::condition_variable m_haveData;
 
-        /* Triggered when data is consumed */
-        std::condition_variable m_consumedData;
+        /* Triggered when a block is consumed */
+        std::condition_variable m_consumedBlock;
 
         /* Whether we're stopping */
         std::atomic<bool> m_shouldStop;

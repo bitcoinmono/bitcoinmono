@@ -45,7 +45,13 @@ const uint64_t LWMA_2_DIFFICULTY_BLOCK_INDEX_V2              = 0;
 const uint64_t LWMA_2_DIFFICULTY_BLOCK_INDEX_V3              = 0;
 
 const unsigned EMISSION_SPEED_FACTOR                         = 20;
+const uint32_t EMISSION_SPEED_FACTOR_V2                      = 24; // based on block version v6 not height
+
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
+static_assert(EMISSION_SPEED_FACTOR_V2 <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
+
+/* Block version to swap to EMISSION_SPEED_FACTOR_V2 */
+const uint64_t EMISSION_SPEED_FACTOR_V2_VERSION               = 6; // it is not height
 
 /* Premine amount */
 const uint64_t GENESIS_BLOCK_REWARD                          = UINT64_C(0);
@@ -215,7 +221,7 @@ const uint8_t  BLOCK_MAJOR_VERSION_2                         =  2;
 const uint8_t  BLOCK_MAJOR_VERSION_3                         =  3;
 const uint8_t  BLOCK_MAJOR_VERSION_4                         =  4;
 const uint8_t  BLOCK_MAJOR_VERSION_5                         =  5;
-const uint8_t  BLOCK_MAJOR_VERSION_6                         =  6;
+const uint8_t  BLOCK_MAJOR_VERSION_6                         =  6; // reduce emission with emission v2
 const uint8_t  BLOCK_MAJOR_VERSION_7                         =  7;
 const uint8_t  BLOCK_MAJOR_VERSION_8                         =  8;
 const uint8_t  BLOCK_MAJOR_VERSION_9                         =  9;
@@ -273,7 +279,6 @@ const static   boost::uuids::uuid CRYPTONOTE_NETWORK         =
 
 const char* const SEED_NODES[] = {
   "212.47.251.15:11357", // Europe
-  "45.77.117.59:11357", // US
-  "3.1.106.35:11357" // Asia
+  "45.77.117.59:11357" // US
 };
 } // CryptoNote
