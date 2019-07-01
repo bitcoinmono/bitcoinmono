@@ -175,7 +175,10 @@ uint64_t timestampToScanHeight(const uint64_t timestamp)
 
     /* Get an estimation of the amount of blocks that have passed before the
        timestamp */
-    return launchTimestampDelta / CryptoNote::parameters::DIFFICULTY_TARGET;
+    return std::max<uint64_t>(
+        0,
+        (launchTimestampDelta / CryptoNote::parameters::DIFFICULTY_TARGET) - 10000
+    );
 }
 
 uint64_t getCurrentTimestampAdjusted()

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "IWallet.h"
+#include "WalletGreenTypes.h"
 #include "TransfersContainer.h"
 #include "Common/StdInputStream.h"
 #include "Common/StdOutputStream.h"
@@ -684,6 +684,35 @@ uint64_t TransfersContainer::balance(uint32_t flags) const {
   }
 
   return amount;
+}
+
+std::vector<SpentTransactionOutput> TransfersContainer::getUnspentInputs() const
+{
+    std::vector<SpentTransactionOutput> result;
+
+    for (const auto &input : m_availableTransfers)
+    {
+        if (input.blockHeight != WALLET_UNCONFIRMED_TRANSACTION_HEIGHT)
+        {
+            /* "cast" TransactionOutputInformationEx to SpentTransactionOutput,
+               leaving other members default constructed */
+            result.push_back({input});
+        }
+    }
+
+    return result;
+}
+
+std::vector<SpentTransactionOutput> TransfersContainer::getSpentInputs() const
+{
+    std::vector<SpentTransactionOutput> result;
+
+    for (const auto &input : m_spentTransfers)
+    {
+        result.push_back(input);
+    }
+
+    return result;
 }
 
 void TransfersContainer::getOutputs(std::vector<TransactionOutputInformation>& transfers, uint32_t flags) const {

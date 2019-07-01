@@ -49,6 +49,14 @@ namespace WalletTypes
            CRYPTONOTE_MAX_BLOCK_NUMBER (In cryptonoteconfig) it is treated
            as a unix timestamp, else it is treated as a block height. */
         uint64_t unlockTime;
+
+        size_t memoryUsage() const
+        {
+            return keyOutputs.size() * sizeof(KeyOutput) + sizeof(keyOutputs) +
+                   sizeof(hash) +
+                   sizeof(transactionPublicKey) +
+                   sizeof(unlockTime);
+        }
     };
 
     /* A raw transaction, simply key images and amounts */
@@ -60,13 +68,21 @@ namespace WalletTypes
         /* The inputs used for a transaction, can be used to track outgoing
            transactions */
         std::vector<CryptoNote::KeyInput> keyInputs;
+
+        size_t memoryUsage() const
+        {
+            return paymentID.size() * sizeof(char) + sizeof(paymentID) +
+                   keyInputs.size() * sizeof(CryptoNote::KeyInput) + sizeof(keyInputs) +
+                   RawCoinbaseTransaction::memoryUsage();
+        }
     };
 
     /* A 'block' with the very basics needed to sync the transactions */
     struct WalletBlockInfo
     {
-        /* The coinbase transaction */
-        RawCoinbaseTransaction coinbaseTransaction;
+        /* The coinbase transaction. Optional, since we can skip fetching
+           coinbase transactions from daemon. */
+        std::optional<RawCoinbaseTransaction> coinbaseTransaction;
 
         /* The transactions in the block */
         std::vector<RawTransaction> transactions;
@@ -79,6 +95,26 @@ namespace WalletTypes
 
         /* The timestamp of the block */
         uint64_t blockTimestamp;
+
+        size_t memoryUsage() const
+        {
+            const size_t txUsage = std::accumulate(
+                transactions.begin(),
+                transactions.end(),
+                sizeof(transactions),
+                [](const auto acc, const auto item) {
+
+                return acc + item.memoryUsage();
+            });
+            
+            return coinbaseTransaction 
+                        ? coinbaseTransaction->memoryUsage() 
+                        : sizeof(coinbaseTransaction) +
+                   txUsage +
+                   sizeof(blockHeight) +
+                   sizeof(blockHash) +
+                   sizeof(blockTimestamp);
+        }
     };
 
     struct TransactionInput
@@ -461,20 +497,48 @@ namespace WalletTypes
         }
     };
 
+    struct TopBlock
+    {
+        Crypto::Hash hash;
+        uint64_t height;
+    };
+
+    inline void to_json(nlohmann::json &j, const TopBlock &t)
+    {
+        j = {
+            {"hash", t.hash},
+            {"height", t.height}
+        };
+    }
+
+    inline void from_json(const nlohmann::json &j, TopBlock &t)
+    {
+        t.hash = j.at("hash").get<Crypto::Hash>();
+        t.height = j.at("height").get<uint64_t>();
+    }
+
     inline void to_json(nlohmann::json &j, const WalletBlockInfo &w)
     {
         j = {
-            {"coinbaseTX", w.coinbaseTransaction},
             {"transactions", w.transactions},
             {"blockHeight", w.blockHeight},
             {"blockHash", w.blockHash},
             {"blockTimestamp", w.blockTimestamp}
         };
+
+        if (w.coinbaseTransaction)
+        {
+            j["coinbaseTX"] = *(w.coinbaseTransaction);
+        }
     }
 
     inline void from_json(const nlohmann::json &j, WalletBlockInfo &w)
     {
-        w.coinbaseTransaction = j.at("coinbaseTX").get<RawCoinbaseTransaction>();
+        if (j.find("coinbaseTX") != j.end())
+        {
+            w.coinbaseTransaction = j.at("coinbaseTX").get<RawCoinbaseTransaction>();
+        }
+
         w.transactions = j.at("transactions").get<std::vector<RawTransaction>>();
         w.blockHeight = j.at("blockHeight").get<uint64_t>();
         w.blockHash = j.at("blockHash").get<Crypto::Hash>();
