@@ -152,14 +152,7 @@ bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size
   assert(alreadyGeneratedCoins <= m_moneySupply);
   uint32_t emission;
 
-  if (blockMajorVersion >= CryptoNote::parameters::EMISSION_SPEED_FACTOR_V2_VERSION)
-  {
-      emission = CryptoNote::parameters::EMISSION_SPEED_FACTOR_V2;
-  }
-  else
-  {
-      emission = CryptoNote::parameters::EMISSION_SPEED_FACTOR;
-  }
+  emission = CryptoNote::parameters::EMISSION_SPEED_FACTOR;
 
   uint64_t baseReward = (m_moneySupply - alreadyGeneratedCoins) >> emission;
   if (alreadyGeneratedCoins == 0 && m_genesisBlockReward != 0) {
