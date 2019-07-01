@@ -8,7 +8,6 @@ LICENSES:
 // Copyright (c) 2018-2019, The TurtleCoin Developers 
 // Copyright (c) 2018-2019, The DeroGold Assosiation 
 // Copyright (c) 2019-2019, The BitcoinMono Developers 
-// Copyright (c) 2019-2019, The Tellurium Community & Developers.
 // Copyright (c) 2018-2019, The WrkzCoin developers
 ```
 
