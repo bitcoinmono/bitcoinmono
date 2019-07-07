@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2019, The DeroGold Association
 // Copyright (c) 2019-2019, The BitcoinMono Developers
-// Copyright (c) 2019-2019, The Tellurium Community & Developers
+// Copyright (c) 2018-2019, The Aeon Classic Developers
 // Copyright (c) 2018-2019, The WrkzCoin developers
 //
 // Please see the included LICENSE file for more information.
@@ -96,22 +96,22 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(1000); /
 const uint64_t MINIMUM_MIXIN_V1                              = 0;
 const uint64_t MAXIMUM_MIXIN_V1                              = 7;
 
-const uint64_t MINIMUM_MIXIN_V2                              = 0; // 250k fork
-const uint64_t MAXIMUM_MIXIN_V2                              = 3; // 250k fork
+const uint64_t MINIMUM_MIXIN_V2                              = 0; // 500k fork
+const uint64_t MAXIMUM_MIXIN_V2                              = 3; // 500k fork
 
 const uint64_t MINIMUM_MIXIN_V3                              = MINIMUM_MIXIN_V2; // unused
 const uint64_t MAXIMUM_MIXIN_V3                              = MAXIMUM_MIXIN_V2; // unused
 
 /* The heights to activate the mixin limits at */
 const uint32_t MIXIN_LIMITS_V1_HEIGHT                        = 0;
-const uint32_t MIXIN_LIMITS_V2_HEIGHT                        = 250000; // 250k fork
+const uint32_t MIXIN_LIMITS_V2_HEIGHT                        = 500000; // 500k fork
 const uint32_t MIXIN_LIMITS_V3_HEIGHT                        = MIXIN_LIMITS_V2_HEIGHT; // unused
 
 /* The mixin to use by default with zedwallet and turtle-service */
 /* DEFAULT_MIXIN_V0 is the mixin used before MIXIN_LIMITS_V1_HEIGHT is started */
 const uint64_t DEFAULT_MIXIN_V0                              = 0;
 const uint64_t DEFAULT_MIXIN_V1                              = 0;
-const uint64_t DEFAULT_MIXIN_V2                              = 1; // 250k fork
+const uint64_t DEFAULT_MIXIN_V2                              = 1; // 500k fork
 const uint64_t DEFAULT_MIXIN_V3                              = DEFAULT_MIXIN_V2; // unused
 
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(0);
@@ -180,7 +180,7 @@ static_assert(UPGRADE_VOTING_WINDOW > 1, "Bad UPGRADE_VOTING_WINDOW");
 const uint64_t FORK_HEIGHTS[] =
 {
     50000, // fork to fix tx size and count bloat
-	250000 // fork to reduce emission, block reward and Argon2id 
+	500000 // fork to mixin, Argon2id 
 };
 
 /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
