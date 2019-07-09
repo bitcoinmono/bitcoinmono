@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -22,7 +22,6 @@ DataBaseConfig::DataBaseConfig() :
   maxOpenFiles(DATABASE_DEFAULT_MAX_OPEN_FILES),
   writeBufferSize(DATABASE_WRITE_BUFFER_MB_DEFAULT_SIZE * MEGABYTE),
   readCacheSize(DATABASE_READ_BUFFER_MB_DEFAULT_SIZE * MEGABYTE),
-  testnet(false),
   configFolderDefaulted(false),
   compressionEnabled(false) {
 }
@@ -70,10 +69,6 @@ uint64_t DataBaseConfig::getWriteBufferSize() const {
 
 uint64_t DataBaseConfig::getReadCacheSize() const {
   return readCacheSize;
-}
-
-bool DataBaseConfig::getTestnet() const {
-  return testnet;
 }
 
 bool DataBaseConfig::getCompressionEnabled() const {

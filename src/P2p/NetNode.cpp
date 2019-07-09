@@ -380,12 +380,8 @@ std::string print_peerlist_to_string(const std::list<PeerlistEntry>& pl) {
   //-----------------------------------------------------------------------------------
 
   bool NodeServer::init(const NetNodeConfig& config) {
-    if (!config.getTestnet()) {
-      for (auto seed : CryptoNote::SEED_NODES) {
-        append_net_address(m_seed_nodes, seed);
-      }
-    } else {
-      m_network_id.data[0] += 1;
+    for (const auto &seed : CryptoNote::SEED_NODES) {
+      append_net_address(m_seed_nodes, seed);
     }
 
     if (!handleConfig(config)) {

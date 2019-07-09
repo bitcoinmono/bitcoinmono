@@ -13,10 +13,4 @@ namespace Utilities
 {
     /* Returns {minMixin, maxMixin, defaultMixin} */
     std::tuple<uint64_t, uint64_t, uint64_t> getMixinAllowableRange(const uint64_t height);
-
-    /* This method is used by WalletService to determine if the mixin amount is correct
-     for the current block height */
-    std::tuple<bool, std::string, std::error_code> validate(
-        const uint64_t mixin,
-        const uint64_t height);
 }

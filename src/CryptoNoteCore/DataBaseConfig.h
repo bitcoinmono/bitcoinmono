@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -24,7 +24,6 @@ public:
   uint32_t getMaxOpenFiles() const;
   uint64_t getWriteBufferSize() const; //Bytes
   uint64_t getReadCacheSize() const; //Bytes
-  bool getTestnet() const;
   bool getCompressionEnabled() const;
 
 private:
@@ -34,7 +33,6 @@ private:
   uint32_t maxOpenFiles;
   uint64_t writeBufferSize;
   uint64_t readCacheSize;
-  bool testnet;
   bool compressionEnabled;
 };
 } //namespace CryptoNote

@@ -13,8 +13,6 @@
 
 #include <tuple>
 
-#include <Wallet/WalletErrors.h>
-
 namespace Utilities
 {
     /* Returns {minMixin, maxMixin, defaultMixin} */
@@ -52,29 +50,5 @@ namespace Utilities
         }
 
         return {minMixin, maxMixin, defaultMixin};
-    }
-
-    /* This method is used by WalletService to determine if the mixin amount is correct
-     for the current block height */
-    std::tuple<bool, std::string, std::error_code> validate(
-        const uint64_t mixin,
-        const uint64_t height)
-    {
-        auto [minMixin, maxMixin, defaultMixin] = getMixinAllowableRange(height);
-
-        std::stringstream str;
-
-        if (mixin < minMixin)
-        {
-            str << "Mixin of " << mixin << " under minimum mixin threshold of " << minMixin;
-            return {false, str.str(), make_error_code(CryptoNote::error::MIXIN_BELOW_THRESHOLD)};
-        }
-        else if (mixin > maxMixin)
-        {
-            str << "Mixin of " << mixin << " above maximum mixin threshold of " << maxMixin;
-            return {false, str.str(), make_error_code(CryptoNote::error::MIXIN_ABOVE_THRESHOLD)};
-        }
-
-        return {true, std::string(), std::error_code()};
     }
 }

@@ -108,6 +108,28 @@ std::string getPaymentIdStringFromExtra(const std::string& binaryString) {
   return Common::podToHex(paymentId);
 }
 
+std::tuple<bool, std::string, std::error_code> validateMixin(
+    const uint64_t mixin,
+    const uint64_t height)
+{
+    auto [minMixin, maxMixin, defaultMixin] = Utilities::getMixinAllowableRange(height);
+
+    std::stringstream str;
+
+    if (mixin < minMixin)
+    {
+        str << "Mixin of " << mixin << " under minimum mixin threshold of " << minMixin;
+        return {false, str.str(), make_error_code(CryptoNote::error::MIXIN_BELOW_THRESHOLD)};
+    }
+    else if (mixin > maxMixin)
+    {
+        str << "Mixin of " << mixin << " above maximum mixin threshold of " << maxMixin;
+        return {false, str.str(), make_error_code(CryptoNote::error::MIXIN_ABOVE_THRESHOLD)};
+    }
+
+    return {true, std::string(), std::error_code()};
+}
+
 }
 
 struct TransactionsInBlockInfoFilter {
@@ -1030,7 +1052,7 @@ std::error_code WalletService::sendTransaction(SendTransaction::Request& request
       validateAddresses({ request.changeAddress }, currency, logger);
     }
 
-    auto [success, error, error_code] = Utilities::validate(request.anonymity, node.getLastKnownBlockHeight());
+    auto [success, error, error_code] = validateMixin(request.anonymity, node.getLastKnownBlockHeight());
 
     if (!success)
     {

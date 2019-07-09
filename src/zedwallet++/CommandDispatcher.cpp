@@ -141,6 +141,10 @@ bool handleCommand(
 
         transfer(walletBackend, sendAll);
     }
+    else if (command == "set_log_level")
+    {
+        setLogLevel();
+    }
     else if (command == "status")
     {
         status(walletBackend);

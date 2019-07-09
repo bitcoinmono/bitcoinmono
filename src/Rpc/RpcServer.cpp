@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018, The Karai Developers
 //
 // Please see the included LICENSE file for more information.
@@ -275,7 +275,7 @@ std::vector<std::string> RpcServer::getCorsDomains() {
 }
 
 bool RpcServer::isCoreReady() {
-  return m_core.getCurrency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
+  return m_p2p.get_payload_object().isSynchronized();
 }
 
 bool RpcServer::on_get_blocks(const COMMAND_RPC_GET_BLOCKS_FAST::request& req, COMMAND_RPC_GET_BLOCKS_FAST::response& res) {
@@ -619,7 +619,6 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.supported_height = CryptoNote::parameters::FORK_HEIGHTS_SIZE == 0 ? 0 : CryptoNote::parameters::FORK_HEIGHTS[CryptoNote::parameters::CURRENT_FORK_INDEX];
   res.hashrate = (uint32_t)round(res.difficulty / CryptoNote::parameters::DIFFICULTY_TARGET);
   res.synced = ((uint64_t)res.height == (uint64_t)res.network_height);
-  res.testnet = m_core.getCurrency().isTestnet();
   res.major_version = m_core.getBlockDetails(m_core.getTopBlockIndex()).majorVersion;
   res.minor_version = m_core.getBlockDetails(m_core.getTopBlockIndex()).minorVersion;
   res.version = PROJECT_VERSION;

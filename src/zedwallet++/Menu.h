@@ -41,6 +41,11 @@ std::string parseCommand(
             continue;
         }
 
+        if (selection == "exit")
+        {
+            return selection;
+        }
+
         int selectionNum;
         
         bool isNumericInput;
@@ -92,7 +97,11 @@ std::string parseCommand(
             auto it = std::find_if(availableCommands.begin(), availableCommands.end(),
             [&selection](const auto command)
             {
-                return command.commandName == selection;
+                std::string cmd = command.commandName;
+
+                std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+
+                return cmd == selection;
             });
 
             /* Command doesn't exist in availableCommands */

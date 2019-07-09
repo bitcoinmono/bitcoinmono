@@ -50,41 +50,14 @@ using namespace CryptoNote;
 using namespace Logging;
 using namespace DaemonConfig;
 
-void print_genesis_tx_hex(const std::vector<std::string> rewardAddresses, const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
+void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
 {
-  std::vector<CryptoNote::AccountPublicAddress> rewardTargets;
-
   CryptoNote::CurrencyBuilder currencyBuilder(logManager);
   currencyBuilder.isBlockexplorer(blockExplorerMode);
 
   CryptoNote::Currency currency = currencyBuilder.currency();
 
-  for (const auto& rewardAddress : rewardAddresses)
-  {
-    CryptoNote::AccountPublicAddress address;
-    if (!currency.parseAccountAddressString(rewardAddress, address))
-    {
-      std::cout << "Failed to parse genesis reward address: " << rewardAddress << std::endl;
-      return;
-    }
-    rewardTargets.emplace_back(std::move(address));
-  }
-
-  CryptoNote::Transaction transaction;
-
-  if (rewardTargets.empty())
-  {
-    if (CryptoNote::parameters::GENESIS_BLOCK_REWARD > 0)
-    {
-      std::cout << "Error: Genesis Block Reward Addresses are not defined" << std::endl;
-      return;
-    }
-    transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction();
-  }
-  else
-  {
-    transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction(rewardTargets);
-  }
+  const auto transaction = CryptoNote::CurrencyBuilder(logManager).generateGenesisTransaction();
 
   std::string transactionHex = Common::toHex(CryptoNote::toBinaryArray(transaction));
   std::cout << getProjectCLIHeader() << std::endl << std::endl
@@ -130,7 +103,7 @@ int main(int argc, char* argv[])
 
   if (config.printGenesisTx) // Do we weant to generate the Genesis Tx?
   {
-    print_genesis_tx_hex(config.genesisAwardAddresses, false, logManager);
+    print_genesis_tx_hex(false, logManager);
     exit(0);
   }
 

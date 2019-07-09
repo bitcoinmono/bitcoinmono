@@ -15,6 +15,8 @@
 
 #include <fstream>
 
+#include <Logger/Logger.h>
+
 #include <Utilities/Addresses.h>
 #include <Utilities/ColouredMsg.h>
 #include <Utilities/FormatTools.h>
@@ -668,4 +670,28 @@ void getTxPrivateKey(const std::shared_ptr<WalletBackend> walletBackend)
         std::cout << InformationMsg("Transaction private key: ")
                   << SuccessMsg(key) << std::endl;
     }
+}
+
+void setLogLevel()
+{
+    const std::vector<Command> logLevels = {
+        Command("Debug", "Display all logging messages"),
+        Command("Info", "Display informational logging messages"),
+        Command("Warning", "Display messages when something may be wrong"),
+        Command("Fatal", "Display messages when something fails"),
+        Command("Disabled", "Don't display any logging messages"),
+    };
+
+    printCommands(logLevels);
+
+    std::string level = parseCommand(
+        logLevels, logLevels, "What log level do you want to use?: "
+    );
+
+    if (level == "exit")
+    {
+        return;
+    }
+
+    Logger::logger.setLogLevel(Logger::stringToLogLevel(level));
 }
