@@ -341,8 +341,8 @@ namespace CryptoNote
         {0xa2, 0x1c, 0x3a, 0x1c, 0x2f, 0x52, 0x51, 0x4a, 0x61, 0xfa, 0x9c, 0xb4, 0x36, 0xa1, 0x23, 0xae}};
 
     const char *const SEED_NODES[] = {
-  "212.47.251.15:11357", // Europe
-  "63.172.135.150:11357", // US
+  "212.47.251.15:11357", // seed 01
+  "163.172.135.150:11357", // seed 02
   "207.180.227.16:11357" // EU WRKZ dev
     };
 } // namespace CryptoNote

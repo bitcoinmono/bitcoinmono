@@ -77,9 +77,7 @@ Crypto::Hash getMerkleRoot(const CryptoNote::BlockTemplate &block)
 
 Crypto::Hash getBlockLongHash(const CryptoNote::BlockTemplate &block)
 {
-    const std::vector<uint8_t> rawHashingBlock = block.majorVersion == CryptoNote::BLOCK_MAJOR_VERSION_1
-                                                     ? getBlockHashingBinaryArray(block)
-                                                     : getParentBlockHashingBinaryArray(block, true);
+    const std::vector<uint8_t> rawHashingBlock = getBlockHashingBinaryArray(block);
 
     Crypto::Hash hash;
 
