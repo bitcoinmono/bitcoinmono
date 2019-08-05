@@ -60,7 +60,7 @@ namespace CryptoNote
 
         const unsigned EMISSION_SPEED_FACTOR = 20;
         const unsigned EMISSION_SPEED_FACTOR_V2 = 24;
-        const unsigned EMISSION_SPEED_FACTOR_V2_BLOCK_VERSION = BLOCK_MAJOR_VERSION_6;
+        const unsigned EMISSION_SPEED_FACTOR_V2_BLOCK_VERSION = 6; // = BLOCK_MAJOR_VERSION_6
 
         static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
         static_assert(EMISSION_SPEED_FACTOR_V2 <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR_V2");
