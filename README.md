@@ -1,4 +1,4 @@
-![image](https://github.com/bitcoinmono/bitcoinmono/raw/master/src/BitcoinMonoConfig/config/logo2.png)
+![image](https://github.com/bitcoinmono/bitcoinmono/raw/master/src/bitcoinmonoconfig/config/logo2.png)
 
 ```
 LICENSES:
@@ -11,11 +11,13 @@ LICENSES:
 // Copyright (c) 2018-2019, The WrkzCoin developers
 ```
 
+BitcoinMono is a cryptocurrency based on Turtlecoin with large supply and high emission. Its aim is to be adopted as the coin of choice in gaming industry.
+
 Please see the included LICENSE file for more information.
 
-FOR DEVS : If you fork the repo to make your own coin, take a look at CryptoNoteConfig_new_coin.h for simplicity.
+FOR DEVS : Please contact me if you want to make your own coin.
 
-FORKS SCHEDULE : BTCM will fork at block 250000.
+FORKS SCHEDULE : BTCM will fork at block 333000 (new algo Chukwa, reduced emission and reduced mixin range).
 
 ### Installing
 
