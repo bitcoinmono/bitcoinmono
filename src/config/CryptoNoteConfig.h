@@ -140,6 +140,7 @@ namespace CryptoNote
 
         const uint64_t DIFFICULTY_WINDOW_V3 = 60;
 
+        const uint64_t DIFFICULTY_BLOCKS_COUNT  = DIFFICULTY_WINDOW + 1;
         const uint64_t DIFFICULTY_BLOCKS_COUNT_V3 = DIFFICULTY_WINDOW_V3 + 1;
 
         const size_t DIFFICULTY_CUT = 60; // timestamps to cut after sorting
