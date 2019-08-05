@@ -662,6 +662,8 @@ namespace CryptoNote
     {
         return false;
 
+        const auto &block = cachedBlock.getBlock();
+
         if (!check_hash(cachedBlock.getBlockLongHash(), currentDifficulty))
         {
             return false;
