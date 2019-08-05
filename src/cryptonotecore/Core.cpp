@@ -1001,7 +1001,7 @@ namespace CryptoNote
 
         size_t blocksCount = std::min(
             static_cast<size_t>(topBlockIndex),
-            currency.difficultyBlocksCountByBlockVersion(nextBlockMajorVersion, topBlockIndex));
+            CryptoNote::parameters::DIFFICULTY_BLOCKS_COUNT);
 
         auto timestamps = mainChain->getLastTimestamps(blocksCount);
         auto difficulties = mainChain->getLastCumulativeDifficulties(blocksCount);
