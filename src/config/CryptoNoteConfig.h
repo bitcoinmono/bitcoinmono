@@ -211,7 +211,7 @@ namespace CryptoNote
 
         /* This value is here to handle the difficult reset needed for the PoW upgrade
            at block major version V6 - WARNING !!! BOOM BOOM !!! */
-        const uint64_t DIFFICULTY_RESET_HEIGHT_V1 = static_cast<uint32>(-1);
+        const uint64_t DIFFICULTY_RESET_HEIGHT_V1 = static_cast<uint64_t>(-1);
         const float DIFFICULTY_RESET_MULTIPLIER_V1 = 0.1;
         const uint64_t DIFFICULTY_RESET_WINDOW_V1 = DIFFICULTY_BLOCKS_COUNT_V3;
 
