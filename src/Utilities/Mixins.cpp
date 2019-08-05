@@ -4,13 +4,11 @@
 // Please see the included LICENSE file for more information.
 
 /////////////////////////////
-#include <Utilities/Mixins.h>
+#include <utilities/Mixins.h>
 /////////////////////////////
 
 #include <config/CryptoNoteConfig.h>
-
 #include <sstream>
-
 #include <tuple>
 
 namespace Utilities
@@ -51,4 +49,4 @@ namespace Utilities
 
         return {minMixin, maxMixin, defaultMixin};
     }
-}
+} // namespace Utilities

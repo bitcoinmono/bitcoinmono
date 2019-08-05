@@ -1,13 +1,13 @@
-// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
 #pragma once
 
+#include <config/CryptoNoteConfig.h>
+#include <logging/ILogger.h>
 #include <rapidjson/document.h>
 #include <string>
-#include <config/CryptoNoteConfig.h>
-#include <Logging/ILogger.h>
 
 using namespace rapidjson;
 
@@ -83,7 +83,9 @@ namespace PaymentService
         bool generateNewContainer = false;
 
         bool daemonize = false;
+
         bool registerService = false;
+
         bool unregisterService = false;
 
         /* Print all the addresses and exit (Why is this a thing?) */
@@ -95,24 +97,15 @@ namespace PaymentService
         uint64_t scanHeight;
     };
 
-    bool updateConfigFormat(
-        const std::string configFile,
-        WalletServiceConfiguration& config);
+    bool updateConfigFormat(const std::string configFile, WalletServiceConfiguration &config);
 
-    void handleSettings(
-        int argc,
-        char* argv[],
-        WalletServiceConfiguration& config);
+    void handleSettings(int argc, char *argv[], WalletServiceConfiguration &config);
 
-    void handleSettings(
-        const std::string configFile,
-        WalletServiceConfiguration& config);
+    void handleSettings(const std::string configFile, WalletServiceConfiguration &config);
 
-    Document asJSON(const WalletServiceConfiguration& config);
+    Document asJSON(const WalletServiceConfiguration &config);
 
-    std::string asString(const WalletServiceConfiguration& config);
+    std::string asString(const WalletServiceConfiguration &config);
 
-    void asFile(
-        const WalletServiceConfiguration& config,
-        const std::string& filename);
-}
+    void asFile(const WalletServiceConfiguration &config, const std::string &filename);
+} // namespace PaymentService

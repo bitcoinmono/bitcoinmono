@@ -3,34 +3,44 @@
 // Please see the included LICENSE file for more information.
 
 /////////////////////////////////
-#include <Miner/BlockUtilities.h>
+#include <miner/BlockUtilities.h>
 /////////////////////////////////
 
-#include <Common/CryptoNoteTools.h>
-#include <Common/Varint.h>
+#include <common/CryptoNoteTools.h>
+#include <common/Varint.h>
+#include <serialization/CryptoNoteSerialization.h>
+#include <serialization/SerializationTools.h>
 
-#include <Serialization/CryptoNoteSerialization.h>
-#include <Serialization/SerializationTools.h>
+std::vector<uint8_t> getParentBlockHashingBinaryArray(const CryptoNote::BlockTemplate &block, const bool headerOnly)
+{
+    return getParentBinaryArray(block, true, headerOnly);
+}
 
 std::vector<uint8_t> getParentBlockBinaryArray(const CryptoNote::BlockTemplate &block, const bool headerOnly)
 {
-    std::vector<uint8_t> parentBlockBinaryArray;
+    return getParentBinaryArray(block, false, headerOnly);
+}
 
-    auto serializer = makeParentBlockSerializer(block, false, headerOnly);
+std::vector<uint8_t>
+    getParentBinaryArray(const CryptoNote::BlockTemplate &block, const bool hashTransaction, const bool headerOnly)
+{
+    std::vector<uint8_t> binaryArray;
 
-    if (!toBinaryArray(serializer, parentBlockBinaryArray))
+    auto serializer = makeParentBlockSerializer(block, hashTransaction, headerOnly);
+
+    if (!toBinaryArray(serializer, binaryArray))
     {
-        throw std::runtime_error("Can't serialize parent block header.");
+        throw std::runtime_error("Can't serialize parent block");
     }
 
-    return parentBlockBinaryArray;
+    return binaryArray;
 }
 
 std::vector<uint8_t> getBlockHashingBinaryArray(const CryptoNote::BlockTemplate &block)
 {
     std::vector<uint8_t> blockHashingBinaryArray;
 
-    if (!toBinaryArray(static_cast<const CryptoNote::BlockHeader&>(block), blockHashingBinaryArray))
+    if (!toBinaryArray(static_cast<const CryptoNote::BlockHeader &>(block), blockHashingBinaryArray))
     {
         throw std::runtime_error("Can't serialize BlockHeader");
     }
@@ -68,17 +78,16 @@ Crypto::Hash getMerkleRoot(const CryptoNote::BlockTemplate &block)
 Crypto::Hash getBlockLongHash(const CryptoNote::BlockTemplate &block)
 {
     const std::vector<uint8_t> rawHashingBlock = block.majorVersion == CryptoNote::BLOCK_MAJOR_VERSION_1
-        ? getBlockHashingBinaryArray(block)
-        : getParentBlockBinaryArray(block, true);
+                                                     ? getBlockHashingBinaryArray(block)
+                                                     : getParentBlockHashingBinaryArray(block, true);
 
     Crypto::Hash hash;
 
     try
     {
-        const auto hashingAlgorithm
-            = CryptoNote::HASHING_ALGORITHMS_BY_BLOCK_VERSION.at(block.majorVersion);
+        const auto hashingAlgorithm = CryptoNote::HASHING_ALGORITHMS_BY_BLOCK_VERSION.at(block.majorVersion);
 
-        hashingAlgorithm(rawHashingBlock.data(), rawHashingBlock.size(), hash); 
+        hashingAlgorithm(rawHashingBlock.data(), rawHashingBlock.size(), hash);
 
         return hash;
     }

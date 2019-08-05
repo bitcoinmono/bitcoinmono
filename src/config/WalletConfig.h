@@ -1,6 +1,5 @@
 // Copyright (c) 2018, The TurtleCoin Developers
-// Copyright (c) 2018, The DeroGold Association
-// 
+//
 // Please see the included LICENSE file for more information.
 
 #pragma once
@@ -40,8 +39,7 @@ namespace WalletConfig
     const std::string contactLink = "https://bitcoinmono.io/";
 
     /* The number of decimals your coin has */
-    const uint8_t numDecimalPlaces = CryptoNote::parameters
-                                               ::CRYPTONOTE_DISPLAY_DECIMAL_POINT;
+    const uint8_t numDecimalPlaces = CryptoNote::parameters::CRYPTONOTE_DISPLAY_DECIMAL_POINT;
 
     /* The length of a standard address for your coin */
     const uint16_t standardAddressLength = 99;
@@ -51,11 +49,10 @@ namespace WalletConfig
        payment ID's are 64 chars, and base58 encoding is done by encoding
        chunks of 8 chars at once into blocks of 11 chars, we can calculate
        this automatically */
-    const uint16_t integratedAddressLength = standardAddressLength
-                                           + ((64 * 11) / 8);
+    const uint16_t integratedAddressLength = standardAddressLength + ((64 * 11) / 8);
 
     /* The default fee value to use with transactions (in ATOMIC units!) */
-    const uint64_t defaultFee = CryptoNote::parameters::MINIMUM_FEE; 
+    const uint64_t defaultFee = CryptoNote::parameters::MINIMUM_FEE;
 
     /* The minimum fee value to allow with transactions (in ATOMIC units!) */
     const uint64_t minimumFee = CryptoNote::parameters::MINIMUM_FEE;
@@ -69,8 +66,7 @@ namespace WalletConfig
     /* If a mixin of zero is disabled, at what height was it disabled? E.g.
        fork height, or 0, if never allowed. This is ignored if a mixin of
        zero is allowed */
-    const uint64_t mixinZeroDisabledHeight
-        = CryptoNote::parameters::MIXIN_LIMITS_V2_HEIGHT;
+    const uint64_t mixinZeroDisabledHeight = CryptoNote::parameters::MIXIN_LIMITS_V2_HEIGHT;
 
     /**
      * Max size of a post body response - 10MB
@@ -87,4 +83,4 @@ namespace WalletConfig
      * The amount of memory to use storing downloaded blocks - 50MB
      */
     const size_t blockStoreMemoryLimit = 1024 * 1024 * 50;
-}
+} // namespace WalletConfig

@@ -5,8 +5,7 @@
 #pragma once
 
 #include <config/CryptoNoteConfig.h>
-
-#include <Logger/Logger.h>
+#include <logger/Logger.h>
 
 struct ZedConfig
 {
@@ -18,7 +17,7 @@ struct ZedConfig
 
     /* The daemon host */
     std::string host;
-    
+
     /* The daemon port */
     uint16_t port = CryptoNote::RPC_DEFAULT_PORT;
 
@@ -30,7 +29,7 @@ struct ZedConfig
 
     /* Controls what level of messages to log */
     Logger::LogLevel logLevel = Logger::DISABLED;
-    
+
     /* Use SSL with daemon */
     bool ssl = false;
 
