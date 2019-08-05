@@ -100,7 +100,7 @@ namespace CryptoNote
 
         const uint64_t MINIMUM_MIXIN_V2 = 0;
 
-        const uint64_t MAXIMUM_MIXIN_V2 = 7;
+        const uint64_t MAXIMUM_MIXIN_V2 = 3;
 
         const uint64_t MINIMUM_MIXIN_V3 = MINIMUM_MIXIN_V2;
 
@@ -109,7 +109,7 @@ namespace CryptoNote
         /* The heights to activate the mixin limits at */
         const uint32_t MIXIN_LIMITS_V1_HEIGHT = 0;
 
-        const uint32_t MIXIN_LIMITS_V2_HEIGHT = 333000;
+        const uint32_t MIXIN_LIMITS_V2_HEIGHT = 250000;
 
         const uint32_t MIXIN_LIMITS_V3_HEIGHT = MIXIN_LIMITS_V2_HEIGHT;
 
@@ -117,9 +117,9 @@ namespace CryptoNote
         /* DEFAULT_MIXIN_V0 is the mixin used before MIXIN_LIMITS_V1_HEIGHT is started */
         const uint64_t DEFAULT_MIXIN_V0 = 0;
 
-        const uint64_t DEFAULT_MIXIN_V1 = 1;
+        const uint64_t DEFAULT_MIXIN_V1 = 0;
 
-        const uint64_t DEFAULT_MIXIN_V2 = 1;
+        const uint64_t DEFAULT_MIXIN_V2 = 0;
 
         const uint64_t DEFAULT_MIXIN_V3 = DEFAULT_MIXIN_V2;
 
