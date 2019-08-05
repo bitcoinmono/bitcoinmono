@@ -146,10 +146,20 @@ namespace CryptoNote
         uint64_t &reward,
         int64_t &emissionChange) const
     {
+        uint32_t emission;
+        
+        if (blockMajorVersion >= CryptoNote::parameters::EMISSION_SPEED_FACTOR_V2_BLOCK_VERSION)
+        {
+            emission = CryptoNote::parameters::EMISSION_SPEED_FACTOR_V2;
+        }
+        else
+        {
+            emission = CryptoNote::parameters::EMISSION_SPEED_FACTOR;
+        }
         assert(alreadyGeneratedCoins <= m_moneySupply);
-        assert(m_emissionSpeedFactor > 0 && m_emissionSpeedFactor <= 8 * sizeof(uint64_t));
+        assert(emission > 0 && emission <= 8 * sizeof(uint64_t));
 
-        uint64_t baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
+        uint64_t baseReward = (m_moneySupply - alreadyGeneratedCoins) >> emission;
 
         size_t blockGrantedFullRewardZone = blockGrantedFullRewardZoneByBlockVersion(blockMajorVersion);
         medianSize = std::max(medianSize, blockGrantedFullRewardZone);
