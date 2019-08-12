@@ -19,6 +19,8 @@ FOR DEVS : Please contact me if you want to make your own coin.
 
 FORKS SCHEDULE : BTCM will fork at block 333000 (new algo Chukwa, reduced emission and reduced mixin range).
 
+TICKER : BTCM is in process to use new ticker BTCMZ due to conflict with another coin.
+
 ### Installing
 
 We offer binary images of the latest releases here: https://github.com/bitcoinmono/bitcoinmono/releases
