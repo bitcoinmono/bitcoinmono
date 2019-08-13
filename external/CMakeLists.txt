@@ -3,6 +3,12 @@ set(UPNPC_BUILD_SHARED OFF CACHE BOOL "Build shared library")
 set(UPNPC_BUILD_TESTS OFF CACHE BOOL "Build test executables")
 set(WITH_MD_LIBRARY OFF CACHE BOOL "Code Generation for static library")
 
+# Disable warnings
+if (NOT MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -Wno-everything")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-everything")
+endif()
+
 add_subdirectory(miniupnpc)
 add_subdirectory(cryptopp)
 add_subdirectory(sqlite3)
