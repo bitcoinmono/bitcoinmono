@@ -151,7 +151,7 @@ namespace CryptoNote
             const uint64_t endHeight,
             std::unordered_map<Crypto::Hash, std::vector<uint64_t>> &indexes) const override;
 
-        virtual bool addTransactionToPool(const BinaryArray &transactionBinaryArray) override;
+        virtual std::tuple<bool, std::string> addTransactionToPool(const BinaryArray &transactionBinaryArray) override;
 
         virtual std::vector<Crypto::Hash> getPoolTransactionHashes() const override;
 
@@ -377,9 +377,9 @@ namespace CryptoNote
 
         void updateBlockMedianSize();
 
-        bool addTransactionToPool(CachedTransaction &&cachedTransaction);
+        std::tuple<bool, std::string> addTransactionToPool(CachedTransaction &&cachedTransaction);
 
-        bool isTransactionValidForPool(
+        std::tuple<bool, std::string> isTransactionValidForPool(
             const CachedTransaction &cachedTransaction,
             TransactionValidatorState &validatorState);
 

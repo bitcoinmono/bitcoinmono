@@ -81,7 +81,7 @@ namespace CryptoNote
                     case TransactionValidationError::INPUT_IDENTICAL_OUTPUT_INDEXES:
                         return "Transaction has identical output indexes";
                     case TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT:
-                        return "Transaction is already present in the queue";
+                        return "Transaction contains an input which has already been spent";
                     case TransactionValidationError::INPUT_INVALID_GLOBAL_INDEX:
                         return "Transaction has input with invalid global index";
                     case TransactionValidationError::INPUT_SPEND_LOCKED_OUT:

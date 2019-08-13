@@ -22,6 +22,7 @@ namespace CryptoNote
 //-----------------------------------------------
 #define CORE_RPC_STATUS_OK "OK"
 #define CORE_RPC_STATUS_BUSY "BUSY"
+#define CORE_RPC_ERROR_EMPTY ""
 
     struct EMPTY_STRUCT
     {
@@ -335,10 +336,12 @@ namespace CryptoNote
         struct response
         {
             std::string status;
+            std::string error;
 
             void serialize(ISerializer &s)
             {
                 KV_MEMBER(status)
+                KV_MEMBER(error)
             }
         };
     };

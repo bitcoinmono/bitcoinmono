@@ -333,7 +333,8 @@ namespace CryptoNote
         children = {newCache.get()};
 
         logger(Logging::DEBUGGING) << "Split successfully completed";
-        return std::move(newCache);
+
+        return newCache;
     }
 
     void BlockchainCache::splitSpentKeyImages(BlockchainCache &newCache, uint32_t splitBlockIndex)

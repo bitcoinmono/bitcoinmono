@@ -8,7 +8,6 @@
 #include "CryptoNoteFormatUtils.h"
 #include "common/TransactionExtra.h"
 #include "crypto/crypto.h"
-#include "cryptonotecore/Account.h"
 
 #include <unordered_set>
 

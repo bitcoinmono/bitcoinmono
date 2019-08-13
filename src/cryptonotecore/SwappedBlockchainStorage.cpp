@@ -67,7 +67,7 @@ namespace CryptoNote
             blocks.pop_back();
         }
 
-        return std::move(newStorage);
+        return newStorage;
     }
 
 } // namespace CryptoNote

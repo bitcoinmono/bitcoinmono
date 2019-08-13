@@ -24,6 +24,9 @@ struct ApiConfig
     /* Controls what level of messages to log */
     Logger::LogLevel logLevel = Logger::DISABLED;
 
+    /* Controls whether an interactive console is provided */
+    bool noConsole = false;
+
     unsigned int threads;
 };
 

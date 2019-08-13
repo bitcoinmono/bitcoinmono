@@ -24,7 +24,6 @@
 #include <common/StringTools.h>
 #include <crypto/crypto.h>
 #include <crypto/random.h>
-#include <cryptonotecore/Account.h>
 #include <cryptonotecore/Core.h>
 #include <cryptonotecore/CryptoNoteBasicImpl.h>
 #include <cryptonotecore/CryptoNoteFormatUtils.h>

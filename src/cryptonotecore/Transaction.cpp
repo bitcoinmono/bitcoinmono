@@ -3,7 +3,6 @@
 //
 // Please see the included LICENSE file for more information.
 
-#include "Account.h"
 #include "ITransaction.h"
 #include "TransactionApiExtra.h"
 #include "TransactionUtils.h"

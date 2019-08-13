@@ -280,6 +280,8 @@ std::string Error::getErrorMessage() const
         }
             /* No default case so the compiler warns us if we missed one */
     }
+
+    throw std::invalid_argument("Invalid error code given");
 }
 
 ErrorCode Error::getErrorCode() const

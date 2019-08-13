@@ -8,7 +8,6 @@
 
 #include <config/Constants.h>
 #include <config/WalletConfig.h>
-#include <cryptonotecore/Account.h>
 #include <cryptonotecore/CryptoNoteBasicImpl.h>
 #include <mnemonics/Mnemonics.h>
 #include <utilities/ColouredMsg.h>

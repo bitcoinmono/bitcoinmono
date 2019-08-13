@@ -19,8 +19,6 @@
 
 namespace CryptoNote
 {
-    class AccountBase;
-
     class Currency
     {
       public:
@@ -349,8 +347,6 @@ namespace CryptoNote
             uint64_t threshold,
             uint8_t &amountPowerOfTen,
             uint32_t height) const;
-
-        std::string accountAddressAsString(const AccountBase &account) const;
 
         std::string accountAddressAsString(const AccountPublicAddress &accountPublicAddress) const;
 

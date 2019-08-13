@@ -10,7 +10,6 @@
 #include <common/StringTools.h>
 #include <common/TransactionExtra.h>
 #include <config/WalletConfig.h>
-#include <cryptonotecore/Account.h>
 
 #ifndef MSVC
 

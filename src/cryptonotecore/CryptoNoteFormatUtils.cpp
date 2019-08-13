@@ -5,7 +5,6 @@
 
 #include "CryptoNoteFormatUtils.h"
 
-#include "Account.h"
 #include "CryptoNoteBasicImpl.h"
 #include "common/CryptoNoteTools.h"
 #include "serialization/BinaryInputStreamSerializer.h"

@@ -9,6 +9,7 @@
 #include <config/CryptoNoteConfig.h>
 #include <ctime>
 #include <mutex>
+#include <logger/Logger.h>
 #include <random>
 #include <utilities/Addresses.h>
 #include <utilities/Utilities.h>
@@ -308,9 +309,15 @@ void SubWallets::addUnconfirmedTransaction(const WalletTypes::Transaction tx)
     {
         std::stringstream stream;
 
-        stream << "Unconfirmed transaction " << tx.hash << " was added to the wallet twice! Terminating.";
+        stream << "Unconfirmed transaction " << tx.hash << " already exists in wallet. Ignoring.";
 
-        throw std::runtime_error(stream.str());
+        Logger::logger.log(
+            stream.str(),
+            Logger::WARNING,
+            { Logger::SYNC }
+        );
+
+        return;
     }
 
     m_lockedTransactions.push_back(tx);
@@ -343,9 +350,15 @@ void SubWallets::addTransaction(const WalletTypes::Transaction tx)
     {
         std::stringstream stream;
 
-        stream << "Transaction " << tx.hash << " was added to the wallet twice! Terminating.";
+        stream << "Transaction " << tx.hash << " already exists in wallet. Ignoring.";
 
-        throw std::runtime_error(stream.str());
+        Logger::logger.log(
+            stream.str(),
+            Logger::WARNING,
+            { Logger::SYNC }
+        );
+
+        return;
     }
 
     m_transactions.push_back(tx);

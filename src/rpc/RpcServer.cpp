@@ -817,22 +817,26 @@ namespace CryptoNote
         {
             logger(INFO) << "[on_send_raw_tx]: Failed to parse tx from hexbuff: " << req.tx_as_hex;
             res.status = "Failed";
+            res.error = "Failed to parse transaction from hex buffer";
             return true;
         }
 
         Crypto::Hash transactionHash = Crypto::cn_fast_hash(transactions.back().data(), transactions.back().size());
         logger(DEBUGGING) << "transaction " << transactionHash << " came in on_send_raw_tx";
 
-        if (!m_core.addTransactionToPool(transactions.back()))
+        const auto [success, error] = m_core.addTransactionToPool(transactions.back());
+        if (!success)
         {
             logger(DEBUGGING) << "[on_send_raw_tx]: tx verification failed";
             res.status = "Failed";
+            res.error = error;
             return true;
         }
 
         m_protocol.relayTransactions(transactions);
         // TODO: make sure that tx has reached other nodes here, probably wait to receive reflections from other nodes
         res.status = CORE_RPC_STATUS_OK;
+        res.error = CORE_RPC_ERROR_EMPTY;
         return true;
     }
 
@@ -1267,7 +1271,7 @@ namespace CryptoNote
             throw JsonRpc::JsonRpcError {CORE_RPC_ERROR_CODE_TOO_BIG_RESERVE_SIZE, "To big reserved size, maximum 255"};
         }
 
-        AccountPublicAddress acc = boost::value_initialized<AccountPublicAddress>();
+        AccountPublicAddress acc;
 
         if (!req.wallet_address.size() || !m_core.getCurrency().parseAccountAddressString(req.wallet_address, acc))
         {

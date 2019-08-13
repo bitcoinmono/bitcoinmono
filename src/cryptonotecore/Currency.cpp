@@ -8,8 +8,6 @@
 #include "Currency.h"
 /////////////////////
 
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/lexical_cast.hpp>
 #include <cctype>
 #include <common/Base58.h>
 #include <common/CheckDifficulty.h>
@@ -18,12 +16,12 @@
 #include <common/TransactionExtra.h>
 #include <common/int-util.h>
 #include <config/Constants.h>
-#include <cryptonotecore/Account.h>
 #include <cryptonotecore/CryptoNoteBasicImpl.h>
 #include <cryptonotecore/CryptoNoteFormatUtils.h>
 #include <cryptonotecore/Difficulty.h>
 #include <cryptonotecore/UpgradeDetector.h>
 #include <utilities/Addresses.h>
+#include <utilities/String.h>
 
 #undef ERROR
 
@@ -55,7 +53,7 @@ namespace CryptoNote
 
     bool Currency::generateGenesisBlock()
     {
-        genesisBlockTemplate = boost::value_initialized<BlockTemplate>();
+        genesisBlockTemplate = BlockTemplate{};
 
         std::string genesisCoinbaseTxHex = CryptoNote::parameters::GENESIS_COINBASE_TX_HEX;
         BinaryArray minerTxBlob;
@@ -255,8 +253,8 @@ namespace CryptoNote
         uint64_t summaryAmounts = 0;
         for (size_t no = 0; no < outAmounts.size(); no++)
         {
-            Crypto::KeyDerivation derivation = boost::value_initialized<Crypto::KeyDerivation>();
-            Crypto::PublicKey outEphemeralPubKey = boost::value_initialized<Crypto::PublicKey>();
+            Crypto::KeyDerivation derivation;
+            Crypto::PublicKey outEphemeralPubKey;
 
             bool r = Crypto::generate_key_derivation(minerAddress.viewPublicKey, txkey.secretKey, derivation);
 
@@ -391,11 +389,6 @@ namespace CryptoNote
         return true;
     }
 
-    std::string Currency::accountAddressAsString(const AccountBase &account) const
-    {
-        return Utilities::getAccountAddressAsStr(m_publicAddressBase58Prefix, account.getAccountKeys().address);
-    }
-
     std::string Currency::accountAddressAsString(const AccountPublicAddress &accountPublicAddress) const
     {
         return Utilities::getAccountAddressAsStr(m_publicAddressBase58Prefix, accountPublicAddress);
@@ -444,7 +437,7 @@ namespace CryptoNote
     bool Currency::parseAmount(const std::string &str, uint64_t &amount) const
     {
         std::string strAmount = str;
-        boost::algorithm::trim(strAmount);
+        Utilities::trim(strAmount);
 
         size_t pointIndex = strAmount.find_first_of('.');
         size_t fractionSize;
@@ -845,7 +838,7 @@ namespace CryptoNote
     Transaction CurrencyBuilder::generateGenesisTransaction()
     {
         CryptoNote::Transaction tx;
-        CryptoNote::AccountPublicAddress ac = boost::value_initialized<CryptoNote::AccountPublicAddress>();
+        CryptoNote::AccountPublicAddress ac;
         m_currency.constructMinerTx(1, 0, 0, 0, 0, 0, ac, tx); // zero fee in genesis
         return tx;
     }

@@ -21,7 +21,7 @@ ApiConfig parseArguments(int argc, char **argv)
 
     cxxopts::Options options(argv[0], CryptoNote::getProjectCLIHeader());
 
-    bool help, version, scanCoinbaseTransactions;
+    bool help, version, scanCoinbaseTransactions, noConsole;
 
     int logLevel;
 
@@ -35,19 +35,23 @@ ApiConfig parseArguments(int argc, char **argv)
          cxxopts::value<int>(logLevel)->default_value(std::to_string(config.logLevel)),
          "#")
 
-            ("scan-coinbase-transactions",
-             "Scan miner/coinbase transactions",
-             cxxopts::value<bool>(scanCoinbaseTransactions)->default_value("false")->implicit_value("true"))
+        ("no-console",
+         "If set, will not provide an interactive console",
+         cxxopts::value<bool>(noConsole)->default_value("false")->implicit_value("true"))
 
-                ("threads",
-                 "Specify number of wallet sync threads",
-                 cxxopts::value<unsigned int>(threads)->default_value(
-                     std::to_string(std::max(1u, std::thread::hardware_concurrency()))),
-                 "#")
+        ("scan-coinbase-transactions",
+         "Scan miner/coinbase transactions",
+         cxxopts::value<bool>(scanCoinbaseTransactions)->default_value("false")->implicit_value("true"))
 
-                    ("v,version",
-                     "Output software version information",
-                     cxxopts::value<bool>(version)->default_value("false")->implicit_value("true"));
+        ("threads",
+         "Specify number of wallet sync threads",
+         cxxopts::value<unsigned int>(threads)->default_value(
+             std::to_string(std::max(1u, std::thread::hardware_concurrency()))),
+         "#")
+
+        ("v,version",
+         "Output software version information",
+         cxxopts::value<bool>(version)->default_value("false")->implicit_value("true"));
 
     options.add_options("Network")(
         "p,port",
@@ -109,6 +113,11 @@ ApiConfig parseArguments(int argc, char **argv)
     else
     {
         config.logLevel = static_cast<Logger::LogLevel>(logLevel);
+    }
+
+    if (noConsole)
+    {
+        config.noConsole = true;
     }
 
     if (threads == 0)

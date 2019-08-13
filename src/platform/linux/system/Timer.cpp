@@ -101,11 +101,20 @@ namespace System
                     uint64_t value = 0;
                     if (::read(timer, &value, sizeof value) == -1)
                     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlogical-op"
-                        if (errno == EAGAIN || errno == EWOULDBLOCK)
+                        bool knownError = false;
+
+                        if (errno == EAGAIN)
                         {
-#pragma GCC diagnostic pop
+                            knownError = true;
+                        }
+
+                        if (errno == EWOULDBLOCK)
+                        {
+                            knownError = true;
+                        }
+
+                        if (knownError)
+                        {
                             timerContext->interrupted = true;
                             dispatcher->pushContext(timerContext->context);
                         }

@@ -15,7 +15,7 @@ uint64_t nextDifficultyV3(std::vector<uint64_t> timestamps, std::vector<uint64_t
 
 uint64_t adjustForDifficultyReset(const uint64_t nextDifficulty, const uint64_t blockIndex);
 
-static float calculateDifficultyResetMultiplier(
+float calculateDifficultyResetMultiplier(
     const uint64_t blockIndex,
     const uint64_t resetHeight,
     const uint64_t resetWindow,

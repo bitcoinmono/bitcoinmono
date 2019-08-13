@@ -81,11 +81,20 @@ namespace System
         ssize_t transferred = ::recv(connection, (void *)data, size, 0);
         if (transferred == -1)
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlogical-op"
-            if (errno != EAGAIN && errno != EWOULDBLOCK)
+            bool knownError = false;
+
+            if (errno == EAGAIN)
             {
-#pragma GCC diagnostic pop
+                knownError = true;
+            }
+
+            if (errno == EWOULDBLOCK)
+            {
+                knownError = true;
+            }
+
+            if (!knownError)
+            {
                 message = "recv failed, " + lastErrorMessage();
             }
             else
@@ -203,11 +212,20 @@ namespace System
         ssize_t transferred = ::send(connection, (void *)data, size, MSG_NOSIGNAL);
         if (transferred == -1)
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlogical-op"
-            if (errno != EAGAIN && errno != EWOULDBLOCK)
+            bool knownError = false;
+
+            if (errno == EAGAIN)
             {
-#pragma GCC diagnostic pop
+                knownError = true;
+            }
+
+            if (errno == EWOULDBLOCK)
+            {
+                knownError = true;
+            }
+
+            if (!knownError)
+            {
                 message = "send failed, " + lastErrorMessage();
             }
             else

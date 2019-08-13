@@ -41,6 +41,8 @@ namespace Logger
                 return "Fatal";
             }
         }
+
+        throw std::invalid_argument("Invalid log level given");
     }
 
     LogLevel stringToLogLevel(std::string level)
@@ -95,6 +97,8 @@ namespace Logger
                 return "Daemon";
             }
         }
+
+        throw std::invalid_argument("Invalid log category given");
     }
 
     void Logger::log(const std::string message, const LogLevel level, const std::vector<LogCategory> categories) const
