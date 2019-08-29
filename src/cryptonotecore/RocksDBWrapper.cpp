@@ -222,7 +222,7 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 
     fOptions.compression_per_level.resize(fOptions.num_levels);
 
-    const auto compressionLevel = config.getCompressionEnabled() ? rocksdb::kLZ4Compression : rocksdb::kNoCompression;
+    const auto compressionLevel = config.getCompressionEnabled() ? rocksdb::kZSTD : rocksdb::kNoCompression;
     for (int i = 0; i < fOptions.num_levels; ++i)
     {
         // don't compress l0 & l1
@@ -230,10 +230,11 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
     }
     // bottom most use lz4hc
     fOptions.bottommost_compression =
-        config.getCompressionEnabled() ? rocksdb::kLZ4HCCompression : rocksdb::kNoCompression;
+        config.getCompressionEnabled() ? rocksdb::kZSTD : rocksdb::kNoCompression;
 
     rocksdb::BlockBasedTableOptions tableOptions;
     tableOptions.block_cache = rocksdb::NewLRUCache(config.getReadCacheSize());
+    tableOptions.block_size = 128*1024;
     std::shared_ptr<rocksdb::TableFactory> tfp(NewBlockBasedTableFactory(tableOptions));
     fOptions.table_factory = tfp;
 
