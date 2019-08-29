@@ -41,6 +41,7 @@ void RocksDBWrapper::init(const DataBaseConfig &config)
     rocksdb::DB *dbPtr;
 
     rocksdb::Options dbOptions = getDBOptions(config);
+    dbOptions.enable_pipelined_write=true;
     rocksdb::Status status = rocksdb::DB::Open(dbOptions, dataDir, &dbPtr);
     if (status.ok())
     {
