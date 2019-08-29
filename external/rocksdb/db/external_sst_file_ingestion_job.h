@@ -20,6 +20,8 @@
 
 namespace rocksdb {
 
+class Directories;
+
 struct IngestedFileInfo {
   // External file path
   std::string external_file_path;
@@ -77,7 +79,8 @@ class ExternalSstFileIngestionJob {
       Env* env, VersionSet* versions, ColumnFamilyData* cfd,
       const ImmutableDBOptions& db_options, const EnvOptions& env_options,
       SnapshotList* db_snapshots,
-      const IngestExternalFileOptions& ingestion_options)
+      const IngestExternalFileOptions& ingestion_options,
+      Directories* directories)
       : env_(env),
         versions_(versions),
         cfd_(cfd),
@@ -85,11 +88,15 @@ class ExternalSstFileIngestionJob {
         env_options_(env_options),
         db_snapshots_(db_snapshots),
         ingestion_options_(ingestion_options),
-        job_start_time_(env_->NowMicros()) {}
+        directories_(directories),
+        job_start_time_(env_->NowMicros()),
+        consumed_seqno_(false) {
+    assert(directories != nullptr);
+  }
 
   // Prepare the job by copying external files into the DB.
   Status Prepare(const std::vector<std::string>& external_files_paths,
-                 SuperVersion* sv);
+                 uint64_t next_file_number, SuperVersion* sv);
 
   // Check if we need to flush the memtable before running the ingestion job
   // This will be true if the files we are ingesting are overlapping with any
@@ -117,6 +124,9 @@ class ExternalSstFileIngestionJob {
   const autovector<IngestedFileInfo>& files_to_ingest() const {
     return files_to_ingest_;
   }
+
+  // Whether to increment VersionSet's seqno after this job runs
+  bool ShouldIncrementLastSequence() const { return consumed_seqno_; }
 
  private:
   // Open the external file and populate `file_to_ingest` with all the
@@ -149,6 +159,10 @@ class ExternalSstFileIngestionJob {
   bool IngestedFileFitInLevel(const IngestedFileInfo* file_to_ingest,
                               int level);
 
+  // Helper method to sync given file.
+  template <typename TWritableFile>
+  Status SyncIngestedFile(TWritableFile* file);
+
   Env* env_;
   VersionSet* versions_;
   ColumnFamilyData* cfd_;
@@ -157,8 +171,10 @@ class ExternalSstFileIngestionJob {
   SnapshotList* db_snapshots_;
   autovector<IngestedFileInfo> files_to_ingest_;
   const IngestExternalFileOptions& ingestion_options_;
+  Directories* directories_;
   VersionEdit edit_;
   uint64_t job_start_time_;
+  bool consumed_seqno_;
 };
 
 }  // namespace rocksdb

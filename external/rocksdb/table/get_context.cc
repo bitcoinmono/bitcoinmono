@@ -38,15 +38,13 @@ void appendToReplayLog(std::string* replay_log, ValueType type, Slice value) {
 
 }  // namespace
 
-GetContext::GetContext(const Comparator* ucmp,
-                       const MergeOperator* merge_operator, Logger* logger,
-                       Statistics* statistics, GetState init_state,
-                       const Slice& user_key, PinnableSlice* pinnable_val,
-                       bool* value_found, MergeContext* merge_context,
-                       RangeDelAggregator* _range_del_agg, Env* env,
-                       SequenceNumber* seq,
-                       PinnedIteratorsManager* _pinned_iters_mgr,
-                       ReadCallback* callback, bool* is_blob_index)
+GetContext::GetContext(
+    const Comparator* ucmp, const MergeOperator* merge_operator, Logger* logger,
+    Statistics* statistics, GetState init_state, const Slice& user_key,
+    PinnableSlice* pinnable_val, bool* value_found, MergeContext* merge_context,
+    SequenceNumber* _max_covering_tombstone_seq, Env* env, SequenceNumber* seq,
+    PinnedIteratorsManager* _pinned_iters_mgr, ReadCallback* callback,
+    bool* is_blob_index, uint64_t tracing_get_id)
     : ucmp_(ucmp),
       merge_operator_(merge_operator),
       logger_(logger),
@@ -56,13 +54,14 @@ GetContext::GetContext(const Comparator* ucmp,
       pinnable_val_(pinnable_val),
       value_found_(value_found),
       merge_context_(merge_context),
-      range_del_agg_(_range_del_agg),
+      max_covering_tombstone_seq_(_max_covering_tombstone_seq),
       env_(env),
       seq_(seq),
       replay_log_(nullptr),
       pinned_iters_mgr_(_pinned_iters_mgr),
       callback_(callback),
-      is_blob_index_(is_blob_index) {
+      is_blob_index_(is_blob_index),
+      tracing_get_id_(tracing_get_id) {
   if (seq_) {
     *seq_ = kMaxSequenceNumber;
   }
@@ -91,11 +90,89 @@ void GetContext::SaveValue(const Slice& value, SequenceNumber /*seq*/) {
   }
 }
 
-void GetContext::RecordCounters(Tickers ticker, size_t val) {
-  if (ticker == Tickers::TICKER_ENUM_MAX) {
-    return;
+void GetContext::ReportCounters() {
+  if (get_context_stats_.num_cache_hit > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_HIT, get_context_stats_.num_cache_hit);
   }
-  tickers_value[ticker] += static_cast<uint64_t>(val);
+  if (get_context_stats_.num_cache_index_hit > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_INDEX_HIT,
+               get_context_stats_.num_cache_index_hit);
+  }
+  if (get_context_stats_.num_cache_data_hit > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_DATA_HIT,
+               get_context_stats_.num_cache_data_hit);
+  }
+  if (get_context_stats_.num_cache_filter_hit > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_FILTER_HIT,
+               get_context_stats_.num_cache_filter_hit);
+  }
+  if (get_context_stats_.num_cache_compression_dict_hit > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_COMPRESSION_DICT_HIT,
+               get_context_stats_.num_cache_compression_dict_hit);
+  }
+  if (get_context_stats_.num_cache_index_miss > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_INDEX_MISS,
+               get_context_stats_.num_cache_index_miss);
+  }
+  if (get_context_stats_.num_cache_filter_miss > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_FILTER_MISS,
+               get_context_stats_.num_cache_filter_miss);
+  }
+  if (get_context_stats_.num_cache_data_miss > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_DATA_MISS,
+               get_context_stats_.num_cache_data_miss);
+  }
+  if (get_context_stats_.num_cache_compression_dict_miss > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_COMPRESSION_DICT_MISS,
+               get_context_stats_.num_cache_compression_dict_miss);
+  }
+  if (get_context_stats_.num_cache_bytes_read > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_BYTES_READ,
+               get_context_stats_.num_cache_bytes_read);
+  }
+  if (get_context_stats_.num_cache_miss > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_MISS,
+               get_context_stats_.num_cache_miss);
+  }
+  if (get_context_stats_.num_cache_add > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_ADD, get_context_stats_.num_cache_add);
+  }
+  if (get_context_stats_.num_cache_bytes_write > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_BYTES_WRITE,
+               get_context_stats_.num_cache_bytes_write);
+  }
+  if (get_context_stats_.num_cache_index_add > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_INDEX_ADD,
+               get_context_stats_.num_cache_index_add);
+  }
+  if (get_context_stats_.num_cache_index_bytes_insert > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_INDEX_BYTES_INSERT,
+               get_context_stats_.num_cache_index_bytes_insert);
+  }
+  if (get_context_stats_.num_cache_data_add > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_DATA_ADD,
+               get_context_stats_.num_cache_data_add);
+  }
+  if (get_context_stats_.num_cache_data_bytes_insert > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_DATA_BYTES_INSERT,
+               get_context_stats_.num_cache_data_bytes_insert);
+  }
+  if (get_context_stats_.num_cache_filter_add > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_FILTER_ADD,
+               get_context_stats_.num_cache_filter_add);
+  }
+  if (get_context_stats_.num_cache_filter_bytes_insert > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_FILTER_BYTES_INSERT,
+               get_context_stats_.num_cache_filter_bytes_insert);
+  }
+  if (get_context_stats_.num_cache_compression_dict_add > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_COMPRESSION_DICT_ADD,
+               get_context_stats_.num_cache_compression_dict_add);
+  }
+  if (get_context_stats_.num_cache_compression_dict_bytes_insert > 0) {
+    RecordTick(statistics_, BLOCK_CACHE_COMPRESSION_DICT_BYTES_INSERT,
+               get_context_stats_.num_cache_compression_dict_bytes_insert);
+  }
 }
 
 bool GetContext::SaveValue(const ParsedInternalKey& parsed_key,
@@ -104,7 +181,7 @@ bool GetContext::SaveValue(const ParsedInternalKey& parsed_key,
   assert(matched);
   assert((state_ != kMerge && parsed_key.type != kTypeMerge) ||
          merge_context_ != nullptr);
-  if (ucmp_->Equal(parsed_key.user_key, user_key_)) {
+  if (ucmp_->CompareWithoutTimestamp(parsed_key.user_key, user_key_) == 0) {
     *matched = true;
     // If the value is not in the snapshot, skip it
     if (!CheckCallback(parsed_key.sequence)) {
@@ -123,7 +200,8 @@ bool GetContext::SaveValue(const ParsedInternalKey& parsed_key,
     auto type = parsed_key.type;
     // Key matches. Process it
     if ((type == kTypeValue || type == kTypeMerge || type == kTypeBlobIndex) &&
-        range_del_agg_ != nullptr && range_del_agg_->ShouldDelete(parsed_key)) {
+        max_covering_tombstone_seq_ != nullptr &&
+        *max_covering_tombstone_seq_ > parsed_key.sequence) {
       type = kTypeRangeDeletion;
     }
     switch (type) {
@@ -142,6 +220,8 @@ bool GetContext::SaveValue(const ParsedInternalKey& parsed_key,
               // If the backing resources for the value are provided, pin them
               pinnable_val_->PinSlice(value, value_pinner);
             } else {
+              TEST_SYNC_POINT_CALLBACK("GetContext::SaveValue::PinSelf", this);
+
               // Otherwise copy the value
               pinnable_val_->PinSelf(value);
             }

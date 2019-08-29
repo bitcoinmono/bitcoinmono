@@ -7,29 +7,28 @@
 
 #include "db/external_sst_file_ingestion_job.h"
 
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
-
-#include <inttypes.h>
 #include <algorithm>
+#include <cinttypes>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
+#include "db/db_impl/db_impl.h"
 #include "db/version_edit.h"
+#include "file/file_util.h"
 #include "table/merging_iterator.h"
 #include "table/scoped_arena_iterator.h"
 #include "table/sst_file_writer_collectors.h"
 #include "table/table_builder.h"
+#include "test_util/sync_point.h"
 #include "util/file_reader_writer.h"
-#include "util/file_util.h"
 #include "util/stop_watch.h"
-#include "util/sync_point.h"
 
 namespace rocksdb {
 
 Status ExternalSstFileIngestionJob::Prepare(
-    const std::vector<std::string>& external_files_paths, SuperVersion* sv) {
+    const std::vector<std::string>& external_files_paths,
+    uint64_t next_file_number, SuperVersion* sv) {
   Status status;
 
   // Read the information of files we are ingesting
@@ -89,36 +88,74 @@ Status ExternalSstFileIngestionJob::Prepare(
   }
 
   // Copy/Move external files into DB
+  std::unordered_set<size_t> ingestion_path_ids;
   for (IngestedFileInfo& f : files_to_ingest_) {
-    f.fd = FileDescriptor(versions_->NewFileNumber(), 0, f.file_size);
-
+    f.fd = FileDescriptor(next_file_number++, 0, f.file_size);
+    f.copy_file = false;
     const std::string path_outside_db = f.external_file_path;
     const std::string path_inside_db =
         TableFileName(cfd_->ioptions()->cf_paths, f.fd.GetNumber(),
                       f.fd.GetPathId());
-
     if (ingestion_options_.move_files) {
       status = env_->LinkFile(path_outside_db, path_inside_db);
-      if (status.IsNotSupported()) {
-        // Original file is on a different FS, use copy instead of hard linking
-        status = CopyFile(env_, path_outside_db, path_inside_db, 0,
-                          db_options_.use_fsync);
+      if (status.ok()) {
+        // It is unsafe to assume application had sync the file and file
+        // directory before ingest the file. For integrity of RocksDB we need
+        // to sync the file.
+        std::unique_ptr<WritableFile> file_to_sync;
+        status = env_->ReopenWritableFile(path_inside_db, &file_to_sync,
+                                          env_options_);
+        if (status.ok()) {
+          TEST_SYNC_POINT(
+              "ExternalSstFileIngestionJob::BeforeSyncIngestedFile");
+          status = SyncIngestedFile(file_to_sync.get());
+          TEST_SYNC_POINT("ExternalSstFileIngestionJob::AfterSyncIngestedFile");
+          if (!status.ok()) {
+            ROCKS_LOG_WARN(db_options_.info_log,
+                           "Failed to sync ingested file %s: %s",
+                           path_inside_db.c_str(), status.ToString().c_str());
+          }
+        }
+      } else if (status.IsNotSupported() &&
+                 ingestion_options_.failed_move_fall_back_to_copy) {
+        // Original file is on a different FS, use copy instead of hard linking.
         f.copy_file = true;
-      } else {
-        f.copy_file = false;
       }
     } else {
+      f.copy_file = true;
+    }
+
+    if (f.copy_file) {
+      TEST_SYNC_POINT_CALLBACK("ExternalSstFileIngestionJob::Prepare:CopyFile",
+                               nullptr);
+      // CopyFile also sync the new file.
       status = CopyFile(env_, path_outside_db, path_inside_db, 0,
                         db_options_.use_fsync);
-      f.copy_file = true;
     }
     TEST_SYNC_POINT("ExternalSstFileIngestionJob::Prepare:FileAdded");
     if (!status.ok()) {
       break;
     }
     f.internal_file_path = path_inside_db;
+    ingestion_path_ids.insert(f.fd.GetPathId());
   }
 
+  TEST_SYNC_POINT("ExternalSstFileIngestionJob::BeforeSyncDir");
+  if (status.ok()) {
+    for (auto path_id : ingestion_path_ids) {
+      status = directories_->GetDataDir(path_id)->Fsync();
+      if (!status.ok()) {
+        ROCKS_LOG_WARN(db_options_.info_log,
+                       "Failed to sync directory %" ROCKSDB_PRIszt
+                       " while ingest file: %s",
+                       path_id, status.ToString().c_str());
+        break;
+      }
+    }
+  }
+  TEST_SYNC_POINT("ExternalSstFileIngestionJob::AfterSyncDir");
+
+  // TODO: The following is duplicated with Cleanup().
   if (!status.ok()) {
     // We failed, remove all files that we copied into the db
     for (IngestedFileInfo& f : files_to_ingest_) {
@@ -166,7 +203,6 @@ Status ExternalSstFileIngestionJob::Run() {
   assert(status.ok() && need_flush == false);
 #endif
 
-  bool consumed_seqno = false;
   bool force_global_seqno = false;
 
   if (ingestion_options_.snapshot_consistency && !db_snapshots_->empty()) {
@@ -196,7 +232,7 @@ Status ExternalSstFileIngestionJob::Run() {
     TEST_SYNC_POINT_CALLBACK("ExternalSstFileIngestionJob::Run",
                              &assigned_seqno);
     if (assigned_seqno == last_seqno + 1) {
-      consumed_seqno = true;
+      consumed_seqno_ = true;
     }
     if (!status.ok()) {
       return status;
@@ -206,13 +242,6 @@ Status ExternalSstFileIngestionJob::Run() {
                   f.largest_internal_key(), f.assigned_seqno, f.assigned_seqno,
                   false);
   }
-
-  if (consumed_seqno) {
-    versions_->SetLastAllocatedSequence(last_seqno + 1);
-    versions_->SetLastPublishedSequence(last_seqno + 1);
-    versions_->SetLastSequence(last_seqno + 1);
-  }
-
   return status;
 }
 
@@ -224,7 +253,7 @@ void ExternalSstFileIngestionJob::UpdateStats() {
   for (IngestedFileInfo& f : files_to_ingest_) {
     InternalStats::CompactionStats stats(CompactionReason::kExternalSstIngestion, 1);
     stats.micros = total_time;
-    // If actual copy occured for this file, then we need to count the file
+    // If actual copy occurred for this file, then we need to count the file
     // size as the actual bytes written. If the file was linked, then we ignore
     // the bytes written for file metadata.
     // TODO (yanqin) maybe account for file metadata bytes for exact accuracy?
@@ -234,7 +263,8 @@ void ExternalSstFileIngestionJob::UpdateStats() {
       stats.bytes_moved = f.fd.GetFileSize();
     }
     stats.num_output_files = 1;
-    cfd_->internal_stats()->AddCompactionStats(f.picked_level, stats);
+    cfd_->internal_stats()->AddCompactionStats(f.picked_level,
+                                               Env::Priority::USER, stats);
     cfd_->internal_stats()->AddCFStats(InternalStats::BYTES_INGESTED_ADD_FILE,
                                        f.fd.GetFileSize());
     total_keys += f.num_entries;
@@ -268,6 +298,7 @@ void ExternalSstFileIngestionJob::Cleanup(const Status& status) {
                        f.internal_file_path.c_str(), s.ToString().c_str());
       }
     }
+    consumed_seqno_ = false;
   } else if (status.ok() && ingestion_options_.move_files) {
     // The files were moved and added successfully, remove original file links
     for (IngestedFileInfo& f : files_to_ingest_) {
@@ -315,6 +346,14 @@ Status ExternalSstFileIngestionJob::GetIngestedFileInfo(
     return status;
   }
 
+  if (ingestion_options_.verify_checksums_before_ingest) {
+    status =
+        table_reader->VerifyChecksum(TableReaderCaller::kExternalSSTIngestion);
+  }
+  if (!status.ok()) {
+    return status;
+  }
+
   // Get the external file properties
   auto props = table_reader->GetTableProperties();
   const auto& uprops = props->user_collected_properties;
@@ -343,7 +382,7 @@ Status ExternalSstFileIngestionJob::GetIngestedFileInfo(
       file_to_ingest->global_seqno_offset = 0;
       return Status::Corruption("Was not able to find file global seqno field");
     }
-    file_to_ingest->global_seqno_offset = offsets_iter->second;
+    file_to_ingest->global_seqno_offset = static_cast<size_t>(offsets_iter->second);
   } else if (file_to_ingest->version == 1) {
     // SST file V1 should not have global seqno field
     assert(seqno_iter == uprops.end());
@@ -369,7 +408,8 @@ Status ExternalSstFileIngestionJob::GetIngestedFileInfo(
   // updating the block cache.
   ro.fill_cache = false;
   std::unique_ptr<InternalIterator> iter(table_reader->NewIterator(
-      ro, sv->mutable_cf_options.prefix_extractor.get()));
+      ro, sv->mutable_cf_options.prefix_extractor.get(), /*arena=*/nullptr,
+      /*skip_filters=*/false, TableReaderCaller::kExternalSSTIngestion));
   std::unique_ptr<InternalIterator> range_del_iter(
       table_reader->NewRangeTombstoneIterator(ro));
 
@@ -475,9 +515,9 @@ Status ExternalSstFileIngestionJob::AssignLevelAndSeqnoForIngestedFile(
         const SequenceNumber level_largest_seqno =
             (*max_element(level_files.begin(), level_files.end(),
                           [](FileMetaData* f1, FileMetaData* f2) {
-                            return f1->largest_seqno < f2->largest_seqno;
+                            return f1->fd.largest_seqno < f2->fd.largest_seqno;
                           }))
-                ->largest_seqno;
+                ->fd.largest_seqno;
         // should only assign seqno to current level's largest seqno when
         // the file fits
         if (level_largest_seqno != 0 &&
@@ -522,7 +562,7 @@ Status ExternalSstFileIngestionJob::CheckLevelForIngestedBehindFile(
   // at some upper level
   for (int lvl = 0; lvl < cfd_->NumberLevels() - 1; lvl++) {
     for (auto file : vstorage->LevelFiles(lvl)) {
-      if (file->smallest_seqno == 0) {
+      if (file->fd.smallest_seqno == 0) {
         return Status::InvalidArgument(
           "Can't ingest_behind file as despite allow_ingest_behind=true "
           "there are files with 0 seqno in database at upper levels!");
@@ -547,24 +587,39 @@ Status ExternalSstFileIngestionJob::AssignGlobalSeqnoForIngestedFile(
         "field");
   }
 
-  std::unique_ptr<RandomRWFile> rwfile;
-  Status status = env_->NewRandomRWFile(file_to_ingest->internal_file_path,
-                                        &rwfile, env_options_);
-  if (!status.ok()) {
-    return status;
+  if (ingestion_options_.write_global_seqno) {
+    // Determine if we can write global_seqno to a given offset of file.
+    // If the file system does not support random write, then we should not.
+    // Otherwise we should.
+    std::unique_ptr<RandomRWFile> rwfile;
+    Status status = env_->NewRandomRWFile(file_to_ingest->internal_file_path,
+                                          &rwfile, env_options_);
+    if (status.ok()) {
+      std::string seqno_val;
+      PutFixed64(&seqno_val, seqno);
+      status = rwfile->Write(file_to_ingest->global_seqno_offset, seqno_val);
+      if (status.ok()) {
+        TEST_SYNC_POINT("ExternalSstFileIngestionJob::BeforeSyncGlobalSeqno");
+        status = SyncIngestedFile(rwfile.get());
+        TEST_SYNC_POINT("ExternalSstFileIngestionJob::AfterSyncGlobalSeqno");
+        if (!status.ok()) {
+          ROCKS_LOG_WARN(db_options_.info_log,
+                         "Failed to sync ingested file %s after writing global "
+                         "sequence number: %s",
+                         file_to_ingest->internal_file_path.c_str(),
+                         status.ToString().c_str());
+        }
+      }
+      if (!status.ok()) {
+        return status;
+      }
+    } else if (!status.IsNotSupported()) {
+      return status;
+    }
   }
 
-  // Write the new seqno in the global sequence number field in the file
-  std::string seqno_val;
-  PutFixed64(&seqno_val, seqno);
-  status = rwfile->Write(file_to_ingest->global_seqno_offset, seqno_val);
-  if (status.ok()) {
-    status = rwfile->Fsync();
-  }
-  if (status.ok()) {
-    file_to_ingest->assigned_seqno = seqno;
-  }
-  return status;
+  file_to_ingest->assigned_seqno = seqno;
+  return Status::OK();
 }
 
 bool ExternalSstFileIngestionJob::IngestedFileFitInLevel(
@@ -593,6 +648,16 @@ bool ExternalSstFileIngestionJob::IngestedFileFitInLevel(
 
   // File did not overlap with level files, our compaction output
   return true;
+}
+
+template <typename TWritableFile>
+Status ExternalSstFileIngestionJob::SyncIngestedFile(TWritableFile* file) {
+  assert(file != nullptr);
+  if (db_options_.use_fsync) {
+    return file->Fsync();
+  } else {
+    return file->Sync();
+  }
 }
 
 }  // namespace rocksdb
