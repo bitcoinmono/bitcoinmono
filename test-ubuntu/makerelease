@@ -1,9 +1,0 @@
-#!/bin/bash
-sudo mkdir $1
-sudo cp ../build/src/BitcoinMono* $1/
-sudo cp ../build/src/zedwallet* $1/
-sudo cp ../build/src/wallet-api $1/
-sudo cp ../build/src/miner $1/
-sudo cp ../build/src/cryptotest $1/
-sudo tar -zcvf $1.tar.gz $1/*
-
