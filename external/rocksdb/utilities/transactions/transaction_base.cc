@@ -14,6 +14,7 @@
 #include "rocksdb/comparator.h"
 #include "rocksdb/db.h"
 #include "rocksdb/status.h"
+#include "util/cast_util.h"
 #include "util/string_util.h"
 
 namespace rocksdb {
@@ -21,7 +22,7 @@ namespace rocksdb {
 TransactionBaseImpl::TransactionBaseImpl(DB* db,
                                          const WriteOptions& write_options)
     : db_(db),
-      dbimpl_(reinterpret_cast<DBImpl*>(db)),
+      dbimpl_(static_cast_with_check<DBImpl, DB>(db)),
       write_options_(write_options),
       cmp_(GetColumnFamilyUserComparator(db->DefaultColumnFamily())),
       start_time_(db_->GetEnv()->NowMicros()),
@@ -30,7 +31,7 @@ TransactionBaseImpl::TransactionBaseImpl(DB* db,
   assert(dynamic_cast<DBImpl*>(db_) != nullptr);
   log_number_ = 0;
   if (dbimpl_->allow_2pc()) {
-    WriteBatchInternal::InsertNoop(write_batch_.GetWriteBatch());
+    InitWriteBatch();
   }
 }
 
@@ -49,7 +50,7 @@ void TransactionBaseImpl::Clear() {
   num_merges_ = 0;
 
   if (dbimpl_->allow_2pc()) {
-    WriteBatchInternal::InsertNoop(write_batch_.GetWriteBatch());
+    InitWriteBatch();
   }
 }
 
