@@ -32,32 +32,43 @@
 # 3. cmake ..
 # 4. make -j
 
-cmake_minimum_required(VERSION 2.8.12)
-project(rocksdb)
-enable_language(CXX)
-enable_language(C)
-enable_language(ASM)
+cmake_minimum_required(VERSION 3.5.1)
+
+message(STATUS "Setting up build environment for RocksDB")
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+  message(STATUS "Found ccache package... Activating...")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
+include(ReadVersion)
+get_rocksdb_version(rocksdb_VERSION)
+project(rocksdb
+  VERSION ${rocksdb_VERSION}
+  LANGUAGES CXX C ASM)
 
 if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
-
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
-
+set(ARCH native CACHE STRING "CPU to build for: -march value or native")
 option(WITH_JEMALLOC "build with JeMalloc" OFF)
 option(WITH_SNAPPY "build with SNAPPY" OFF)
 option(WITH_LZ4 "build with lz4" OFF)
 option(WITH_ZLIB "build with zlib" OFF)
-option(WITH_ZSTD "build with zstd" ON)
+option(WITH_ZSTD "build with zstd" OFF)
 option(WITH_WINDOWS_UTF8_FILENAMES "use UTF8 as characterset for opening files, regardles of the system code page" OFF)
 if (WITH_WINDOWS_UTF8_FILENAMES)
   add_definitions(-DROCKSDB_WINDOWS_UTF8_FILENAMES)
+endif()
+# third-party/folly is only validated to work on Linux and Windows for now.
+# So only turn it on there by default.
+if(CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "Windows")
+  option(WITH_FOLLY_DISTRIBUTED_MUTEX "build with folly::DistributedMutex" ON)
+else()
+  option(WITH_FOLLY_DISTRIBUTED_MUTEX "build with folly::DistributedMutex" OFF)
 endif()
 if(MSVC)
   # Defaults currently different for GFLAGS.
@@ -66,13 +77,6 @@ if(MSVC)
   option(WITH_XPRESS "build with windows built in compression" OFF)
   include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty.inc)
 
-  if(WITH_LZ4)
-    SET(LZ4_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lz4")
-    SET(LZ4_LIBRARIES lz4)
-    add_definitions(-DLZ4)
-    include_directories(${LZ4_INCLUDE_DIR})
-    list(APPEND THIRDPARTY_LIBS ${LZ4_LIBRARIES})
-  endif()
   if(WITH_ZSTD)
     SET(ZSTD_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../zstd")
     SET(ZSTD_LIBRARIES zstd)
@@ -92,8 +96,7 @@ else()
     if(WITH_JEMALLOC)
       find_package(JeMalloc REQUIRED)
       add_definitions(-DROCKSDB_JEMALLOC -DJEMALLOC_NO_DEMANGLE)
-      include_directories(${JEMALLOC_INCLUDE_DIR})
-      list(APPEND THIRDPARTY_LIBS ${JEMALLOC_LIBRARIES})
+      list(APPEND THIRDPARTY_LIBS JeMalloc::JeMalloc)
     endif()
   endif()
 
@@ -111,37 +114,31 @@ else()
   if(WITH_SNAPPY)
     find_package(snappy REQUIRED)
     add_definitions(-DSNAPPY)
-    include_directories(${SNAPPY_INCLUDE_DIR})
-    list(APPEND THIRDPARTY_LIBS ${SNAPPY_LIBRARIES})
+    list(APPEND THIRDPARTY_LIBS snappy::snappy)
   endif()
 
   if(WITH_ZLIB)
     find_package(ZLIB REQUIRED)
     add_definitions(-DZLIB)
-    if(ZLIB_INCLUDE_DIRS)
-      # CMake 3
-      include_directories(${ZLIB_INCLUDE_DIRS})
-    else()
-      # CMake 2
-      include_directories(${ZLIB_INCLUDE_DIR})
-    endif()
-    list(APPEND THIRDPARTY_LIBS ${ZLIB_LIBRARIES})
+    list(APPEND THIRDPARTY_LIBS ZLIB::ZLIB)
   endif()
 
   option(WITH_BZ2 "build with bzip2" OFF)
   if(WITH_BZ2)
-    find_package(bzip2 REQUIRED)
+    find_package(BZip2 REQUIRED)
     add_definitions(-DBZIP2)
-    include_directories(${BZIP2_INCLUDE_DIR})
+    if(BZIP2_INCLUDE_DIRS)
+      include_directories(${BZIP2_INCLUDE_DIRS})
+    else()
+      include_directories(${BZIP2_INCLUDE_DIR})
+    endif()
     list(APPEND THIRDPARTY_LIBS ${BZIP2_LIBRARIES})
   endif()
 
   if(WITH_LZ4)
-    SET(LZ4_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lz4")
-    SET(LZ4_LIBRARIES lz4)
+    find_package(lz4 REQUIRED)
     add_definitions(-DLZ4)
-    include_directories(${LZ4_INCLUDE_DIR})
-    list(APPEND THIRDPARTY_LIBS ${LZ4_LIBRARIES})
+    list(APPEND THIRDPARTY_LIBS lz4::lz4)
   endif()
 
   if(WITH_ZSTD)
@@ -149,10 +146,10 @@ else()
     SET(ZSTD_LIBRARIES zstd)
     add_definitions(-DZSTD)
     include_directories(${ZSTD_INCLUDE_DIR})
-    list(APPEND THIRDPARTY_LIBS ${ZSTD_LIBRARIES})
     include_directories("${ZSTD_INCLUDE_DIR}/lib/dictBuilder")
     include_directories("${ZSTD_INCLUDE_DIR}/lib")
     include_directories("${ZSTD_INCLUDE_DIR}/common")
+    list(APPEND THIRDPARTY_LIBS ${ZSTD_LIBRARIES})
   endif()
 endif()
 
@@ -212,12 +209,20 @@ else()
   if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
     include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("-momit-leaf-frame-pointer" HAVE_OMIT_LEAF_FRAME_POINTER)
-    if(HAVE_OMIT_LEAF_FRAME_POINTER)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -momit-leaf-frame-pointer")
+    if(NOT "${ARCH}" STREQUAL "default")
+      CHECK_CXX_COMPILER_FLAG("-momit-leaf-frame-pointer" HAVE_OMIT_LEAF_FRAME_POINTER)
+      if(HAVE_OMIT_LEAF_FRAME_POINTER)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -momit-leaf-frame-pointer")
+      endif()
     endif()
   endif()
 endif()
+
+if(APPLE AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    # Need to build against libc++ instead of libstc++ on apple
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++ -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1 -nodefaultlibs -lc++ -lc++abi -lm -lc -lgcc -lgcc_eh")
+endif()
+
 
 include(CheckCCompilerFlag)
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
@@ -231,6 +236,8 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
   endif(HAS_ALTIVEC)
 endif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
 
+option(PORTABLE "build a portable binary" ON)
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|AARCH64")
         CHECK_C_COMPILER_FLAG("-march=armv8-a+crc" HAS_ARMV8_CRC)
   if(HAS_ARMV8_CRC)
@@ -240,7 +247,6 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|AARCH64")
   endif(HAS_ARMV8_CRC)
 endif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|AARCH64")
 
-option(PORTABLE "build a portable binary" OFF)
 option(FORCE_SSE42 "force building with SSE4.2, even when PORTABLE=ON" OFF)
 if(PORTABLE)
   # MSVC does not need a separate compiler flag to enable SSE4.2; if nmmintrin.h
@@ -259,42 +265,46 @@ else()
 endif()
 
 include(CheckCXXSourceCompiles)
-if(NOT MSVC)
-  set(CMAKE_REQUIRED_FLAGS "-msse4.2 -mpclmul")
-endif()
-CHECK_CXX_SOURCE_COMPILES("
-#include <cstdint>
-#include <nmmintrin.h>
-#include <wmmintrin.h>
-int main() {
-  volatile uint32_t x = _mm_crc32_u32(0, 0);
-  const auto a = _mm_set_epi64x(0, 0);
-  const auto b = _mm_set_epi64x(0, 0);
-  const auto c = _mm_clmulepi64_si128(a, b, 0x00);
-  auto d = _mm_cvtsi128_si64(c);
-}
-" HAVE_SSE42)
-unset(CMAKE_REQUIRED_FLAGS)
-if(HAVE_SSE42)
-  add_definitions(-DHAVE_SSE42)
-  add_definitions(-DHAVE_PCLMUL)
-elseif(FORCE_SSE42)
-  message(FATAL_ERROR "FORCE_SSE42=ON but unable to compile with SSE4.2 enabled")
-endif()
-
-CHECK_CXX_SOURCE_COMPILES("
-#if defined(_MSC_VER) && !defined(__thread)
-#define __thread __declspec(thread)
-#endif
-int main() {
-  static __thread int tls;
-}
-" HAVE_THREAD_LOCAL)
-if(HAVE_THREAD_LOCAL)
-  add_definitions(-DROCKSDB_SUPPORT_THREAD_LOCAL)
+if(NOT "${ARCH}" STREQUAL "default")
+  if(NOT MSVC)
+    set(CMAKE_REQUIRED_FLAGS "-msse4.2 -mpclmul")
+  endif()
+  CHECK_CXX_SOURCE_COMPILES("
+  #include <cstdint>
+  #include <nmmintrin.h>
+  #include <wmmintrin.h>
+  int main() {
+    volatile uint32_t x = _mm_crc32_u32(0, 0);
+    const auto a = _mm_set_epi64x(0, 0);
+    const auto b = _mm_set_epi64x(0, 0);
+    const auto c = _mm_clmulepi64_si128(a, b, 0x00);
+    auto d = _mm_cvtsi128_si64(c);
+  }
+  " HAVE_SSE42)
+  unset(CMAKE_REQUIRED_FLAGS)
+  if(HAVE_SSE42)
+    add_definitions(-DHAVE_SSE42)
+    add_definitions(-DHAVE_PCLMUL)
+  elseif(FORCE_SSE42)
+    message(FATAL_ERROR "FORCE_SSE42=ON but unable to compile with SSE4.2 enabled")
+  endif()
 endif()
 
-option(FAIL_ON_WARNINGS "Treat compile warnings as errors" ON)
+if(NOT "${ARCH}" STREQUAL "default")
+  CHECK_CXX_SOURCE_COMPILES("
+  #if defined(_MSC_VER) && !defined(__thread)
+  #define __thread __declspec(thread)
+  #endif
+  int main() {
+    static __thread int tls;
+  }
+  " HAVE_THREAD_LOCAL)
+  if(HAVE_THREAD_LOCAL)
+    add_definitions(-DROCKSDB_SUPPORT_THREAD_LOCAL)
+  endif()
+endif()
+
+option(FAIL_ON_WARNINGS "Treat compile warnings as errors" OFF)
 if(FAIL_ON_WARNINGS)
   if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
@@ -339,15 +349,14 @@ if(WITH_NUMA)
   find_package(NUMA REQUIRED)
   add_definitions(-DNUMA)
   include_directories(${NUMA_INCLUDE_DIR})
-  list(APPEND THIRDPARTY_LIBS ${NUMA_LIBRARIES})
+  list(APPEND THIRDPARTY_LIBS NUMA::NUMA)
 endif()
 
 option(WITH_TBB "build with Threading Building Blocks (TBB)" OFF)
 if(WITH_TBB)
   find_package(TBB REQUIRED)
   add_definitions(-DTBB)
-  include_directories(${TBB_INCLUDE_DIR})
-  list(APPEND THIRDPARTY_LIBS ${TBB_LIBRARIES})
+  list(APPEND THIRDPARTY_LIBS TBB::TBB)
 endif()
 
 # Stall notifications eat some performance from inserts
@@ -389,7 +398,7 @@ endif()
 
 # Used to run CI build and tests so we can run faster
 option(OPTDBG "Build optimized debug build with MSVC" OFF)
-option(WITH_RUNTIME_DEBUG "build with debug version of runtime library" ON)
+option(WITH_RUNTIME_DEBUG "build with debug version of runtime library" OFF)
 if(MSVC)
   if(OPTDBG)
     message(STATUS "Debug optimization is enabled")
@@ -415,7 +424,7 @@ endif()
 option(ROCKSDB_LITE "Build RocksDBLite version" OFF)
 if(ROCKSDB_LITE)
   add_definitions(-DROCKSDB_LITE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -Os")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Cygwin")
@@ -459,7 +468,7 @@ if(WITH_FALLOCATE)
 #include <linux/falloc.h>
 int main() {
  int fd = open(\"/dev/null\", 0);
- fallocate(fd, FALLOC_FL_KEEP_SIZE, 0, 1024);
+ fallocate(fd, FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE, 0, 1024);
 }
 " HAVE_FALLOCATE)
   if(HAVE_FALLOCATE)
@@ -467,41 +476,52 @@ int main() {
   endif()
 endif()
 
-CHECK_CXX_SOURCE_COMPILES("
-#include <fcntl.h>
-int main() {
-  int fd = open(\"/dev/null\", 0);
-  sync_file_range(fd, 0, 1024, SYNC_FILE_RANGE_WRITE);
-}
-" HAVE_SYNC_FILE_RANGE_WRITE)
-if(HAVE_SYNC_FILE_RANGE_WRITE)
-  add_definitions(-DROCKSDB_RANGESYNC_PRESENT)
+if(NOT "${ARCH}" STREQUAL "default")
+  CHECK_CXX_SOURCE_COMPILES("
+  #include <fcntl.h>
+  int main() {
+    int fd = open(\"/dev/null\", 0);
+    sync_file_range(fd, 0, 1024, SYNC_FILE_RANGE_WRITE);
+  }
+  " HAVE_SYNC_FILE_RANGE_WRITE)
+  if(HAVE_SYNC_FILE_RANGE_WRITE)
+    add_definitions(-DROCKSDB_RANGESYNC_PRESENT)
+  endif()
 endif()
 
-CHECK_CXX_SOURCE_COMPILES("
-#include <pthread.h>
-int main() {
-  (void) PTHREAD_MUTEX_ADAPTIVE_NP;
-}
-" HAVE_PTHREAD_MUTEX_ADAPTIVE_NP)
-if(HAVE_PTHREAD_MUTEX_ADAPTIVE_NP)
-  add_definitions(-DROCKSDB_PTHREAD_ADAPTIVE_MUTEX)
+if(NOT "${ARCH}" STREQUAL "default")
+  CHECK_CXX_SOURCE_COMPILES("
+  #include <pthread.h>
+  int main() {
+    (void) PTHREAD_MUTEX_ADAPTIVE_NP;
+  }
+  " HAVE_PTHREAD_MUTEX_ADAPTIVE_NP)
+  if(HAVE_PTHREAD_MUTEX_ADAPTIVE_NP)
+    add_definitions(-DROCKSDB_PTHREAD_ADAPTIVE_MUTEX)
+  endif()
 endif()
 
 include(CheckCXXSymbolExists)
-check_cxx_symbol_exists(malloc_usable_size malloc.h HAVE_MALLOC_USABLE_SIZE)
-if(HAVE_MALLOC_USABLE_SIZE)
-  add_definitions(-DROCKSDB_MALLOC_USABLE_SIZE)
+if(NOT "${ARCH}" STREQUAL "default")
+  check_cxx_symbol_exists(malloc_usable_size malloc.h HAVE_MALLOC_USABLE_SIZE)
+  if(HAVE_MALLOC_USABLE_SIZE)
+    add_definitions(-DROCKSDB_MALLOC_USABLE_SIZE)
+  endif()
 endif()
 
-check_cxx_symbol_exists(sched_getcpu sched.h HAVE_SCHED_GETCPU)
-if(HAVE_SCHED_GETCPU)
-  add_definitions(-DROCKSDB_SCHED_GETCPU_PRESENT)
+if(NOT "${ARCH}" STREQUAL "default")
+  check_cxx_symbol_exists(sched_getcpu sched.h HAVE_SCHED_GETCPU)
+  if(HAVE_SCHED_GETCPU)
+    add_definitions(-DROCKSDB_SCHED_GETCPU_PRESENT)
+  endif()
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/gtest-1.7.0/fused-src)
+if(WITH_FOLLY_DISTRIBUTED_MUTEX)
+  include_directories(${PROJECT_SOURCE_DIR}/third-party/folly)
+endif()
 find_package(Threads REQUIRED)
 
 # Main library source code
@@ -560,6 +580,7 @@ set(SOURCES
         db/table_cache.cc
         db/table_properties_collector.cc
         db/transaction_log_impl.cc
+        db/trim_history_scheduler.cc
         db/version_builder.cc
         db/version_edit.cc
         db/version_set.cc
@@ -701,6 +722,7 @@ set(SOURCES
         utilities/merge_operators/bytesxor.cc
         utilities/merge_operators/max.cc
         utilities/merge_operators/put.cc
+        utilities/merge_operators/sortlist.cc
         utilities/merge_operators/string_append/stringappend.cc
         utilities/merge_operators/string_append/stringappend2.cc
         utilities/merge_operators/uint64add.cc
@@ -734,10 +756,12 @@ set(SOURCES
         utilities/write_batch_with_index/write_batch_with_index_internal.cc
         $<TARGET_OBJECTS:build_version>)
 
-if(HAVE_SSE42 AND NOT MSVC)
-  set_source_files_properties(
-    util/crc32c.cc
-    PROPERTIES COMPILE_FLAGS "-msse4.2 -mpclmul")
+if(HAVE_SSE42 AND NOT FORCE_SSE42)
+  if(NOT MSVC)
+set_source_files_properties(
+  util/crc32c.cc
+      PROPERTIES COMPILE_FLAGS "-msse4.2 -mpclmul")
+  endif()
 endif()
 
 if(HAVE_POWER8)
@@ -777,6 +801,15 @@ else()
     env/io_posix.cc)
 endif()
 
+if(WITH_FOLLY_DISTRIBUTED_MUTEX)
+  list(APPEND SOURCES
+    third-party/folly/folly/detail/Futex.cpp
+    third-party/folly/folly/synchronization/AtomicNotification.cpp
+    third-party/folly/folly/synchronization/DistributedMutex.cpp
+    third-party/folly/folly/synchronization/ParkingLot.cpp
+    third-party/folly/folly/synchronization/WaitOptions.cpp)
+endif()
+
 set(ROCKSDB_STATIC_LIB rocksdb${ARTIFACT_SUFFIX})
 set(ROCKSDB_SHARED_LIB rocksdb-shared${ARTIFACT_SUFFIX})
 set(ROCKSDB_IMPORT_LIB ${ROCKSDB_SHARED_LIB})
@@ -800,8 +833,8 @@ else()
     ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
   set_target_properties(${ROCKSDB_SHARED_LIB} PROPERTIES
                         LINKER_LANGUAGE CXX
-                        VERSION ${ROCKSDB_VERSION}
-                        SOVERSION ${ROCKSDB_VERSION_MAJOR}
+                        VERSION ${rocksdb_VERSION}
+                        SOVERSION ${rocksdb_VERSION_MAJOR}
                         CXX_STANDARD 11
                         OUTPUT_NAME "rocksdb")
 endif()
@@ -856,7 +889,7 @@ if(NOT WIN32 OR ROCKSDB_INSTALL_ON_WINDOWS)
 
   write_basic_package_version_file(
     RocksDBConfigVersion.cmake
-    VERSION ${ROCKSDB_VERSION}
+    VERSION ${rocksdb_VERSION}
     COMPATIBILITY SameMajorVersion
   )
 
@@ -927,6 +960,7 @@ if(WITH_TESTS)
         db/db_log_iter_test.cc
         db/db_memtable_test.cc
         db/db_merge_operator_test.cc
+        db/db_merge_operand_test.cc
         db/db_options_test.cc
         db/db_properties_test.cc
         db/db_range_del_test.cc
@@ -1047,6 +1081,10 @@ if(WITH_TESTS)
     list(APPEND TESTS utilities/env_librados_test.cc)
   endif()
 
+  if(WITH_FOLLY_DISTRIBUTED_MUTEX)
+    list(APPEND TESTS third-party/folly/folly/synchronization/test/DistributedMutexTest.cpp)
+  endif()
+
   set(BENCHMARKS
     cache/cache_bench.cc
     memtable/memtablerep_bench.cc
@@ -1127,4 +1165,64 @@ endif()
 option(WITH_TOOLS "build with tools" OFF)
 if(WITH_TOOLS)
   add_subdirectory(tools)
+endif()
+
+
+if(MSVC)
+  # Check for the presence of AVX and figure out the flags to use for it.
+  string (REPLACE "/arch:AVX2" ""     CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  string (REPLACE "/arch:AVX" ""     CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+
+  if(NOT "${ARCH}" STREQUAL "default")
+    include(CheckCXXSourceRuns)
+
+    # Check AVX
+    check_cxx_source_runs("
+      #include <immintrin.h>
+      int main()
+      {
+        __m256 a, b, c;
+        const float src[8] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
+        float dst[8];
+        a = _mm256_loadu_ps( src );
+        b = _mm256_loadu_ps( src );
+        c = _mm256_add_ps( a, b );
+        _mm256_storeu_ps( dst, c );
+        for( int i = 0; i < 8; i++ ){
+          if( ( src[i] + src[i] ) != dst[i] ){
+            return -1;
+          }
+        }
+        return 0;
+      }"
+      HAVE_AVX_EXTENSIONS)
+
+    # Check AVX2
+    check_cxx_source_runs("
+      #include <immintrin.h>
+      int main()
+      {
+        __m256i a, b, c;
+        const int src[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+        int dst[8];
+        a =  _mm256_loadu_si256( (__m256i*)src );
+        b =  _mm256_loadu_si256( (__m256i*)src );
+        c = _mm256_add_epi32( a, b );
+        _mm256_storeu_si256( (__m256i*)dst, c );
+        for( int i = 0; i < 8; i++ ){
+          if( ( src[i] + src[i] ) != dst[i] ){
+            return -1;
+          }
+        }
+        return 0;
+      }"
+      HAVE_AVX2_EXTENSIONS)
+
+    # Set Flags
+    if(HAVE_AVX2_EXTENSIONS AND NOT MSVC_VERSION LESS 1800)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
+    elseif(HAVE_AVX_EXTENSIONS  AND NOT MSVC_VERSION LESS 1600)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
+    endif()
+  endif()
 endif()
