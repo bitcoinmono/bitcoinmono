@@ -17,9 +17,7 @@ Please see the included LICENSE file for more information.
 
 FOR DEVS : Please contact me if you want to make your own coin.
 
-FORKS SCHEDULE : BTCM will fork at block 333000 (new algo Chukwa, reduced emission and reduced mixin range).
-
-TICKER : BTCM is in process to use new ticker BTCMZ due to conflict with another coin.
+TICKER : old ticket BTCM, new ticker BTCMZ.
 
 LOGO : https://github.com/bitcoinmono/bitcoinmono/blob/master/src/bitcoinmonoconfig/config/logo.png
 
@@ -181,7 +179,7 @@ The binaries will be in the `src` folder when you are complete.
 - `mkdir build`
 - `cd build`
 - `set PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin";%PATH%`
-- `cmake -G "Visual Studio 15 2017 Win64" .. -DBOOST_ROOT=C:/local/boost_1_68_0`
+- `cmake -G "Visual Studio 15 2017 Win64" .. -DBOOST_ROOT=C:/local/boost_1_68_0 -DARCH=x86-64 -DCMAKE_BUILD_TYPE=release`
 
 If you have errors on this step about not being able to find the following static libraries, you may need to update your cmake. Open 'Visual Studio Installer' and click 'Update'.
 
