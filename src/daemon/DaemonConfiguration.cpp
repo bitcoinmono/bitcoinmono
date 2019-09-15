@@ -153,7 +153,7 @@ namespace DaemonConfig
         options.add_options("Database")(
             "db-enable-compression",
             "Enable database compression",
-            cxxopts::value<bool>(config.enableDbCompression)->default_value("true"))(
+            cxxopts::value<bool>(config.enableDbCompression)->default_value("false")->implicit_value("true"))(
             "db-max-open-files",
             "Number of files that can be used by the database at one time",
             cxxopts::value<int>()->default_value(std::to_string(config.dbMaxOpenFiles)),
