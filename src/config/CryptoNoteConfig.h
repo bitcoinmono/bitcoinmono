@@ -91,9 +91,9 @@ namespace CryptoNote
 
         const size_t CRYPTONOTE_DISPLAY_DECIMAL_POINT = 4;
 
-        const uint64_t MINIMUM_FEE = UINT64_C(1000);
+        const uint64_t MINIMUM_FEE = UINT64_C(1000); // old fee - new fee v2 is 10 btcmz - 100000 atomic unit
         
-        /* Temporary high fee for txes */
+        /* New fee for txes */
         const uint64_t MINIMUM_FEE_V2 = UINT64_C(100000); // 10 btcmz
         const uint64_t MINIMUM_FEE_V2_HEIGHT = 600000; // 10 btcmz
 
