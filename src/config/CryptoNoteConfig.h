@@ -92,6 +92,10 @@ namespace CryptoNote
         const size_t CRYPTONOTE_DISPLAY_DECIMAL_POINT = 4;
 
         const uint64_t MINIMUM_FEE = UINT64_C(1000);
+        
+        /* Temporary high fee for txes */
+        const uint64_t MINIMUM_FEE_V2 = UINT64_C(100000); // 10 btcmz
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 600000; // 10 btcmz
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V1 = 0;
