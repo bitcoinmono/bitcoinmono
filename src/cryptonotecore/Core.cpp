@@ -1880,7 +1880,11 @@ namespace CryptoNote
 
         size_t transactionsSize;
         uint64_t fee;
+        if (height % CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_RATE != 0) {
+        fillBlockTemplate(b, CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_SIZE, CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_SIZE, height, transactionsSize, fee);
+        } else {
         fillBlockTemplate(b, medianSize, currency.maxBlockCumulativeSize(height), height, transactionsSize, fee);
+        }
 
         /*
      two-phase miner transaction generation: we don't know exact block size until we prepare block, but we don't know

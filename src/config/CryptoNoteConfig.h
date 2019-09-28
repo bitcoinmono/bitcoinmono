@@ -86,8 +86,15 @@ namespace CryptoNote
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1 = 10000;
 
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
+        
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 40000;
+
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 10; // rotating 10 reduced blocks + 1 full block
 
         const size_t CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE = 600;
+
+        static_assert(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE > CRYPTONOTE_BLOCK_REDUCTION_SIZE, "Reduction can not be bigger than full.");
+        static_assert(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 30 / 100 < CRYPTONOTE_BLOCK_REDUCTION_SIZE, "Reduction is too small.");
 
         const size_t CRYPTONOTE_DISPLAY_DECIMAL_POINT = 4;
 

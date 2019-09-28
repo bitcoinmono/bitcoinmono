@@ -366,6 +366,15 @@ namespace SendTransaction
 
             return Error(TOO_MANY_INPUTS_TO_FIT_IN_BLOCK, errorMsg.str());
         }
+        
+        const uint64_t txSizeKB = (txSize/1024) + 1;
+        
+        if (fee < txSizeKB * CryptoNote::parameters::FEE_PER_KB)
+        {
+            std::stringstream stream;
+
+            stream << "For info : dynamic expected fee = " << txSizeKB * CryptoNote::parameters::FEE_PER_KB;
+        |
 
         return SUCCESS;
     }
