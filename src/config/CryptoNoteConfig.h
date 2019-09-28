@@ -93,9 +93,13 @@ namespace CryptoNote
 
         const uint64_t MINIMUM_FEE = UINT64_C(1000); // old fee - new fee v2 is 10 btcmz - 100000 atomic unit
         
-        /* New fee for txes */
-        const uint64_t MINIMUM_FEE_V2 = UINT64_C(100000); // 10 btcmz
+        /* New fee V2 */
+        const uint64_t MINIMUM_FEE_V2        = UINT64_C(100000); // 10 btcmz
         const uint64_t MINIMUM_FEE_V2_HEIGHT = 600000; // 10 btcmz
+        
+        /* Dynamic fee - In process */
+        const uint64_t ACCEPTABLE_FEE = UINT64_C(100000); // 10 btcmz
+        const uint64_t FEE_PER_KB  = UINT64_C(1000); // 0.1 btcmz per kB
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V1 = 0;
