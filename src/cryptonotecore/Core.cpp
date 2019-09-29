@@ -31,7 +31,6 @@
 #include <set>
 #include <system/Timer.h>
 #include <unordered_set>
-#include <utilities/Fees.h>
 #include <utilities/Container.h>
 #include <utilities/FormatTools.h>
 #include <utilities/LicenseCanary.h>
@@ -1708,7 +1707,12 @@ namespace CryptoNote
                             cachedTransaction.getTransactionBinaryArray().size(),
                             getTopBlockIndex());
 
-        const uint64_t minFee = Utilities::getMinimumFee(getTopBlockIndex());
+        uint64_t minFee = CryptoNote::parameters::MINIMUM_FEE;
+
+        if (getTopBlockIndex() >= CryptoNote::parameters::MINIMUM_FEE_V2_HEIGHT)
+        {
+            minFee = CryptoNote::parameters::MINIMUM_FEE_V2;
+        }
 
         if (!isFusion && fee < minFee)
         {
