@@ -89,7 +89,7 @@ namespace CryptoNote
         
         const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 50000;
 
-        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 5; // rotating 5 reduced blocks + 1 full block
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 2; // rotating 2 reduced blocks + 1 full block
 
         const size_t CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE = 600;
 
