@@ -102,7 +102,7 @@ namespace CryptoNote
         
         /* New fee V2 */
         const uint64_t MINIMUM_FEE_V2        = UINT64_C(5000000); // 500 btcmz
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 405000; // 100 btcmz
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 399000; // 100 btcmz
         
         /* Dynamic fee - In process */
         const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 100 btcmz
@@ -240,7 +240,7 @@ namespace CryptoNote
         const uint64_t FORK_HEIGHTS[] = {
             50000, // fork to fix tx size and count bloat
             333000, // fork to change mixin, Argon2id 
-            405000 // minimum fee 500 btcmz - or 5000000 atomic units
+            399000 // minimum fee 500 btcmz - or 5000000 atomic units
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
