@@ -234,7 +234,7 @@ Error validateAmount(
     const uint64_t currentHeight)
 {
     /* Verify the fee is valid */
-    if (fee < CryptoNote::parameters::MINIMUM_FEE)
+    if (fee < CryptoNote::parameters::MINIMUM_FEE_V2)
     {
         return FEE_TOO_SMALL;
     }

@@ -86,8 +86,15 @@ namespace CryptoNote
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1 = 10000;
 
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
+        
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 50000;
+
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 5; // rotating 5 reduced blocks + 1 full block
 
         const size_t CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE = 600;
+
+        static_assert(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE > CRYPTONOTE_BLOCK_REDUCTION_SIZE, "Reduction can not be bigger than full.");
+        static_assert(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 30 / 100 < CRYPTONOTE_BLOCK_REDUCTION_SIZE, "Reduction is too small.");
 
         const size_t CRYPTONOTE_DISPLAY_DECIMAL_POINT = 4;
 
@@ -95,7 +102,7 @@ namespace CryptoNote
         
         /* New fee V2 */
         const uint64_t MINIMUM_FEE_V2        = UINT64_C(1000000); // 100 btcmz
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 600000; // 100 btcmz
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 405000; // 100 btcmz
         
         /* Dynamic fee - In process */
         const uint64_t ACCEPTABLE_FEE = UINT64_C(1000000); // 100 btcmz

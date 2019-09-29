@@ -1707,7 +1707,14 @@ namespace CryptoNote
                             cachedTransaction.getTransactionBinaryArray().size(),
                             getTopBlockIndex());
 
-        if (!isFusion && fee < currency.minimumFee())
+        uint64_t minFee = CryptoNote::parameters::MINIMUM_FEE;
+
+        if (getTopBlockIndex() >= CryptoNote::parameters::MINIMUM_FEE_V2_HEIGHT)
+        {
+            minFee = CryptoNote::parameters::MINIMUM_FEE_V2;
+        }
+
+        if (!isFusion && fee < minFee)
         {
             logger(Logging::WARNING) << "Transaction " << cachedTransaction.getTransactionHash()
                                      << " is not valid. Reason: fee is too small and it's not a fusion transaction";
@@ -1880,7 +1887,11 @@ namespace CryptoNote
 
         size_t transactionsSize;
         uint64_t fee;
+        if (height % CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_RATE != 0) {
+        fillBlockTemplate(b, CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_SIZE, CryptoNote::parameters::CRYPTONOTE_BLOCK_REDUCTION_SIZE, height, transactionsSize, fee);
+        } else {
         fillBlockTemplate(b, medianSize, currency.maxBlockCumulativeSize(height), height, transactionsSize, fee);
+        }
 
         /*
      two-phase miner transaction generation: we don't know exact block size until we prepare block, but we don't know
