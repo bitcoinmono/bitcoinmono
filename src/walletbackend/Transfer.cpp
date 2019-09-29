@@ -374,7 +374,7 @@ namespace SendTransaction
             std::stringstream stream;
 
             stream << "For info : dynamic expected fee = " << txSizeKB * CryptoNote::parameters::FEE_PER_KB;
-        |
+        }
 
         return SUCCESS;
     }

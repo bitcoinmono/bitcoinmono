@@ -87,7 +87,7 @@ namespace CryptoNote
 
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
         
-        const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 40000;
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 80000;
 
         const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 10; // rotating 10 reduced blocks + 1 full block
 
