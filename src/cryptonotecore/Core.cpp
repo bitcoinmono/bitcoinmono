@@ -1710,7 +1710,7 @@ namespace CryptoNote
 
         const uint64_t minFee = Utilities::getMinimumFee(getTopBlockIndex());
 
-        if (!isFusion && fee < minFee) {
+        if (!isFusion && fee < minFee)
         {
             logger(Logging::WARNING) << "Transaction " << cachedTransaction.getTransactionHash()
                                      << " is not valid. Reason: fee is too small and it's not a fusion transaction";
