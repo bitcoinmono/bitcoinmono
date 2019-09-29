@@ -102,7 +102,7 @@ namespace CryptoNote
         
         /* New fee V2 */
         const uint64_t MINIMUM_FEE_V2        = UINT64_C(1000000); // 100 btcmz
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 600000; // 100 btcmz
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 410000; // 100 btcmz
         
         /* Dynamic fee - In process */
         const uint64_t ACCEPTABLE_FEE = UINT64_C(1000000); // 100 btcmz

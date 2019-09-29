@@ -31,6 +31,7 @@
 #include <set>
 #include <system/Timer.h>
 #include <unordered_set>
+#include <Utilities/Fees.h>
 #include <utilities/Container.h>
 #include <utilities/FormatTools.h>
 #include <utilities/LicenseCanary.h>
@@ -1707,7 +1708,9 @@ namespace CryptoNote
                             cachedTransaction.getTransactionBinaryArray().size(),
                             getTopBlockIndex());
 
-        if (!isFusion && fee < currency.minimumFee())
+        const uint64_t minFee = Utilities::getMinimumFee(getTopBlockIndex());
+
+        if (!isFusion && fee < minFee) {
         {
             logger(Logging::WARNING) << "Transaction " << cachedTransaction.getTransactionHash()
                                      << " is not valid. Reason: fee is too small and it's not a fusion transaction";
