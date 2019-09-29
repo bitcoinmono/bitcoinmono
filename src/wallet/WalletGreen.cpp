@@ -2009,7 +2009,7 @@ namespace CryptoNote
         if (transactionParameters.fee < CryptoNote::parameters::MINIMUM_FEE_V2)
         {
             std::string message = "Fee is too small. Fee " + m_currency.formatAmount(transactionParameters.fee)
-                                  + ", minimum fee " + m_currency.formatAmount(m_currency.minimumFee());
+                                  + ", minimum fee " + m_currency.formatAmount(CryptoNote::parameters::MINIMUM_FEE_V2);
             m_logger(ERROR, BRIGHT_RED) << message;
             throw std::system_error(make_error_code(error::FEE_TOO_SMALL), message);
         }
