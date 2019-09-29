@@ -89,7 +89,7 @@ namespace CryptoNote
         
         const size_t   CRYPTONOTE_BLOCK_REDUCTION_SIZE               = 50000;
 
-        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 5; // rotating 5 reduced blocks + 1 full block
+        const size_t   CRYPTONOTE_BLOCK_REDUCTION_RATE               = 2; // rotating 2 reduced blocks + 1 full block
 
         const size_t CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE = 600;
 
@@ -101,11 +101,11 @@ namespace CryptoNote
         const uint64_t MINIMUM_FEE = UINT64_C(1000); // old fee - new fee v2 is 100 btcmz - 1000000 atomic unit
         
         /* New fee V2 */
-        const uint64_t MINIMUM_FEE_V2        = UINT64_C(1000000); // 100 btcmz
+        const uint64_t MINIMUM_FEE_V2        = UINT64_C(5000000); // 500 btcmz
         const uint64_t MINIMUM_FEE_V2_HEIGHT = 405000; // 100 btcmz
         
         /* Dynamic fee - In process */
-        const uint64_t ACCEPTABLE_FEE = UINT64_C(1000000); // 100 btcmz
+        const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 100 btcmz
         const uint64_t FEE_PER_KB  = UINT64_C(1000); // 0.1 btcmz per kB
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
@@ -240,7 +240,7 @@ namespace CryptoNote
         const uint64_t FORK_HEIGHTS[] = {
             50000, // fork to fix tx size and count bloat
             333000, // fork to change mixin, Argon2id 
-            405000 // minimum fee 100 btcmz - 1000000 atomic units
+            405000 // minimum fee 500 btcmz - or 5000000 atomic units
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
