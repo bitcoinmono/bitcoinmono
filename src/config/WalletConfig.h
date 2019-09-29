@@ -51,11 +51,11 @@ namespace WalletConfig
        this automatically */
     const uint16_t integratedAddressLength = standardAddressLength + ((64 * 11) / 8);
 
-    /* The default fee value to use with transactions (in ATOMIC units!) - 100 BTMZ */
-    const uint64_t defaultFee = 1000000;
+    /* The default fee value to use with transactions (in ATOMIC units!) - 500 BTMZ */
+    const uint64_t defaultFee = 5000000;
 
-    /* The minimum fee value to allow with transactions (in ATOMIC units!)  - 100 BTMZ*/
-    const uint64_t minimumFee = 1000000;
+    /* The minimum fee value to allow with transactions (in ATOMIC units!)  - 500 BTMZ*/
+    const uint64_t minimumFee = 5000000;
 
     /* The minimum amount allowed to be sent - usually 1 (in ATOMIC units!) */
     const uint64_t minimumSend = 10000;
