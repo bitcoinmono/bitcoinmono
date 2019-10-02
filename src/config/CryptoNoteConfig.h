@@ -235,11 +235,12 @@ namespace CryptoNote
         const uint64_t FORK_HEIGHTS[] = {
             50000, // fork to fix tx size and count bloat
             333000, // fork to change mixin, Argon2id 
-            399000 // minimum fee 500 btcmz - or 5000000 atomic units
+            399000, // minimum fee 500 btcmz - or 5000000 atomic units
+            500000  // dynamic fee - TODO
         };
 
-        /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
-        const uint64_t SOFTWARE_SUPPORTED_FORK_INDEX = 1;
+        /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK - Count from 0 */
+        const uint64_t SOFTWARE_SUPPORTED_FORK_INDEX = 2;
 
         const uint64_t FORK_HEIGHTS_SIZE = sizeof(FORK_HEIGHTS) / sizeof(*FORK_HEIGHTS);
 
