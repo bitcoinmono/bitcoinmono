@@ -1716,7 +1716,7 @@ namespace CryptoNote
 
         if (!isFusion && fee < minFee)
         {
-            logger(Logging::WARNING) << "Transaction " << cachedTransaction.getTransactionHash()
+            logger(Logging::DEBUGGING) << "Transaction " << cachedTransaction.getTransactionHash()
                                      << " is not valid. Reason: fee is too small and it's not a fusion transaction";
             return {false, "Transaction fee is too small"};
         }
@@ -2965,6 +2965,10 @@ namespace CryptoNote
             {
                 logger(Logging::TRACE) << "Transaction " << transaction.getTransactionHash()
                                        << " not included in block template";
+                if (transactionsSize + transaction.getTransactionBinaryArray().size() > maxTotalSize)
+                {
+                    break;
+                }
             }
         }
 
@@ -2976,6 +2980,10 @@ namespace CryptoNote
             {
                 logger(Logging::TRACE) << "Fusion transaction " << transaction.getTransactionHash()
                                        << " included in block template";
+            }
+            else if (transactionsSize + transaction.getTransactionBinaryArray().size() > maxTotalSize)
+            {
+                break;
             }
         }
     }

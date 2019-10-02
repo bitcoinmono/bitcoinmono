@@ -98,15 +98,16 @@ namespace CryptoNote
 
         const size_t CRYPTONOTE_DISPLAY_DECIMAL_POINT = 4;
 
-        const uint64_t MINIMUM_FEE = UINT64_C(1000); // old fee - new fee v2 is 100 btcmz - 1000000 atomic unit
+        const uint64_t MINIMUM_FEE = UINT64_C(1000); // old fee - new fee v2 is 500 btcmz - 5000000 atomic unit
         
         /* New fee V2 */
         const uint64_t MINIMUM_FEE_V2        = UINT64_C(5000000); // 500 btcmz
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 399000; // 100 btcmz
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 399000; // 500 btcmz
         
         /* Dynamic fee - In process */
-        const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 100 btcmz
+        const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 500 btcmz
         const uint64_t FEE_PER_KB  = UINT64_C(1000); // 0.1 btcmz per kB
+        const uint64_t FEE_PER_OUTPUT  = UINT64_C(10000); // 1 btcmz per output
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V1 = 0;
@@ -224,12 +225,6 @@ namespace CryptoNote
 
         const uint32_t UPGRADE_HEIGHT_CURRENT = UPGRADE_HEIGHT_V6;
 
-        /* This value is here to handle the difficult reset needed for the PoW upgrade
-           at block major version V6 - WARNING !!! BOOM BOOM !!! */
-        const uint64_t DIFFICULTY_RESET_HEIGHT_V1 = static_cast<uint64_t>(-1);
-        const float DIFFICULTY_RESET_MULTIPLIER_V1 = 0.1;
-        const uint64_t DIFFICULTY_RESET_WINDOW_V1 = DIFFICULTY_BLOCKS_COUNT_V3;
-
         const unsigned UPGRADE_VOTING_THRESHOLD = 90; // percent
         const uint32_t UPGRADE_VOTING_WINDOW = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY; // blocks
         const uint32_t UPGRADE_WINDOW = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY; // blocks
@@ -344,10 +339,11 @@ namespace CryptoNote
     const size_t P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT = 5000; // 5 seconds
     const char P2P_STAT_TRUSTED_PUB_KEY[] = "";
 
-    const uint64_t DATABASE_WRITE_BUFFER_MB_DEFAULT_SIZE = 256; // 512 MB
+    const uint64_t DATABASE_WRITE_BUFFER_MB_DEFAULT_SIZE = 256; // 256 MB
     const uint64_t DATABASE_READ_BUFFER_MB_DEFAULT_SIZE = 64; // 64 MB
     const uint32_t DATABASE_DEFAULT_MAX_OPEN_FILES = 50; // 500 files
     const uint16_t DATABASE_DEFAULT_BACKGROUND_THREADS_COUNT = 4; // 4 DB threads
+    const uint64_t DATABASE_MAX_BYTES_FOR_LEVEL_BASE = 512; // Todo in MB
 
     const char LATEST_VERSION_URL[] = "https://github.com/bitcoinmono/bitcoinmono/releases";
 
