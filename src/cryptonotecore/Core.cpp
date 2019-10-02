@@ -1716,7 +1716,7 @@ namespace CryptoNote
 
         if (!isFusion && fee < minFee)
         {
-            logger(Logging::WARNING) << "Transaction " << cachedTransaction.getTransactionHash()
+            logger(Logging::DEBUGGING) << "Transaction " << cachedTransaction.getTransactionHash()
                                      << " is not valid. Reason: fee is too small and it's not a fusion transaction";
             return {false, "Transaction fee is too small"};
         }
