@@ -356,6 +356,6 @@ namespace CryptoNote
     const char *const SEED_NODES[] = {
   "212.47.251.15:11357", // seed 01
   "163.172.135.150:11357", // seed 02
-  "207.180.227.16:11357" // EU WRKZ dev
+  "5.9.65.105:11357" // EU WRKZ dev
     };
 } // namespace CryptoNote
