@@ -47,6 +47,7 @@
 #include <wallet/WalletSerializationV2.h>
 #include <wallet/WalletUtils.h>
 #include <walletbackend/Constants.h>
+#include <walletbackend/Transfer.h>
 #include <walletbackend/WalletBackend.h>
 
 #undef ERROR
@@ -477,12 +478,14 @@ namespace CryptoNote
                 // Don't delete file if it has existed
                 if (storageCreated)
                 {
-                    boost::system::error_code ignore;
-                    boost::filesystem::remove(path, ignore);
+                    std::error_code ignore;
+                    fs::remove(path, ignore);
                 }
             });
 
-            ContainerStorage newStorage(path, FileMappedVectorOpenMode::CREATE, m_containerStorage.prefixSize());
+            ContainerStorage newStorage(path, FileMappedVectorOpenMode::OPEN_OR_CREATE, m_containerStorage.prefixSize());
+            newStorage.clear();
+
             storageCreated = true;
 
             chacha8_key newStorageKey;
@@ -2006,10 +2009,10 @@ namespace CryptoNote
             throw std::system_error(make_error_code(error::ZERO_DESTINATION));
         }
 
-        if (transactionParameters.fee < CryptoNote::parameters::MINIMUM_FEE_V2)
+        if (transactionParameters.fee < m_currency.minimumFee())
         {
             std::string message = "Fee is too small. Fee " + m_currency.formatAmount(transactionParameters.fee)
-                                  + ", minimum fee " + m_currency.formatAmount(CryptoNote::parameters::MINIMUM_FEE_V2);
+                                  + ", minimum fee " + m_currency.formatAmount(m_currency.minimumFee());
             m_logger(ERROR, BRIGHT_RED) << message;
             throw std::system_error(make_error_code(error::FEE_TOO_SMALL), message);
         }
@@ -3066,7 +3069,7 @@ namespace CryptoNote
         ReceiverAmounts receiverAmounts;
 
         receiverAmounts.receiver = destination;
-        decomposeAmount(amount, dustThreshold, receiverAmounts.amounts);
+        receiverAmounts.amounts = SendTransaction::splitAmountIntoDenominations(amount);
         return receiverAmounts;
     }
 
@@ -3963,9 +3966,10 @@ namespace CryptoNote
         WalletGreen::decomposeFusionOutputs(const AccountPublicAddress &address, uint64_t inputsAmount)
     {
         WalletGreen::ReceiverAmounts outputs;
-        outputs.receiver = address;
 
-        decomposeAmount(inputsAmount, 0, outputs.amounts);
+        outputs.receiver = address;
+        outputs.amounts = SendTransaction::splitAmountIntoDenominations(inputsAmount);
+
         std::sort(outputs.amounts.begin(), outputs.amounts.end());
 
         return outputs;

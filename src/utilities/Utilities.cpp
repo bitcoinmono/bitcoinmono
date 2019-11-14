@@ -150,13 +150,13 @@ namespace Utilities
     {
         if (timestamp == 0)
         {
-            return 1;
+            return 0;
         }
 
         /* Timestamp is before the chain launched! */
         if (timestamp <= CryptoNote::parameters::GENESIS_BLOCK_TIMESTAMP)
         {
-            return 1;
+            return 0;
         }
 
         /* Find the amount of seconds between launch and the timestamp */
