@@ -11,14 +11,15 @@ endif()
 
 add_subdirectory(miniupnpc)
 add_subdirectory(cryptopp)
-add_subdirectory(argon2)
 add_subdirectory(zstd)
+add_subdirectory(lz4)
+add_subdirectory(argon2)
 
 if (MSVC)
     add_subdirectory(rocksDB EXCLUDE_FROM_ALL)
-    set_property(TARGET upnpc-static cryptopp-static rocksdb zstd argon2 PROPERTY FOLDER "external")
+    set_property(TARGET upnpc-static cryptopp-static rocksdb zstd lz4 argon2 PROPERTY FOLDER "external")
 elseif (NOT MSVC)
-    set_property(TARGET upnpc-static cryptopp-static zstd argon2 PROPERTY FOLDER "external")
+    set_property(TARGET upnpc-static cryptopp-static zstd lz4 argon2 PROPERTY FOLDER "external")
     add_custom_target(
             rocksdb
             COMMAND $(MAKE) rocksdb
@@ -34,3 +35,4 @@ if (MSVC)
 elseif (NOT MSVC)
     set_property(TARGET upnpc-static APPEND_STRING PROPERTY COMPILE_FLAGS " -Wno-undef -Wno-unused-result -Wno-unused-value")
 endif ()
+

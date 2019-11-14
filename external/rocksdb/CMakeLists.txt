@@ -42,12 +42,10 @@ if(CCACHE_PROGRAM)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
-include(ReadVersion)
-get_rocksdb_version(rocksdb_VERSION)
-project(rocksdb
-  VERSION ${rocksdb_VERSION}
-  LANGUAGES CXX C ASM)
+project(rocksdb)
+enable_language(CXX)
+enable_language(C)
+enable_language(ASM)
 
 if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
@@ -76,6 +74,15 @@ if(MSVC)
   option(WITH_GFLAGS "build with GFlags" OFF)
   option(WITH_XPRESS "build with windows built in compression" OFF)
   include(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty.inc)
+
+  if(WITH_LZ4)
+    message(STATUS "LZ4 library is enabled")
+    SET(LZ4_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lz4")
+    SET(LZ4_LIBRARIES lz4)
+    add_definitions(-DLZ4)
+    include_directories(${LZ4_INCLUDE_DIR})
+    list(APPEND THIRDPARTY_LIBS ${LZ4_LIBRARIES})
+  endif()
 
   if(WITH_ZSTD)
     SET(ZSTD_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../zstd")
@@ -136,9 +143,12 @@ else()
   endif()
 
   if(WITH_LZ4)
-    find_package(lz4 REQUIRED)
+    message(STATUS "LZ4 library is enabled")
+    SET(LZ4_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lz4")
+    SET(LZ4_LIBRARIES lz4)
     add_definitions(-DLZ4)
-    list(APPEND THIRDPARTY_LIBS lz4::lz4)
+    include_directories(${LZ4_INCLUDE_DIR})
+    list(APPEND THIRDPARTY_LIBS ${LZ4_LIBRARIES})
   endif()
 
   if(WITH_ZSTD)
@@ -833,8 +843,8 @@ else()
     ${THIRDPARTY_LIBS} ${SYSTEM_LIBS})
   set_target_properties(${ROCKSDB_SHARED_LIB} PROPERTIES
                         LINKER_LANGUAGE CXX
-                        VERSION ${rocksdb_VERSION}
-                        SOVERSION ${rocksdb_VERSION_MAJOR}
+                        VERSION ${ROCKSDB_VERSION}
+                        SOVERSION ${ROCKSDB_VERSION_MAJOR}
                         CXX_STANDARD 11
                         OUTPUT_NAME "rocksdb")
 endif()
@@ -889,7 +899,7 @@ if(NOT WIN32 OR ROCKSDB_INSTALL_ON_WINDOWS)
 
   write_basic_package_version_file(
     RocksDBConfigVersion.cmake
-    VERSION ${rocksdb_VERSION}
+    VERSION ${ROCKSDB_VERSION}
     COMPATIBILITY SameMajorVersion
   )
 
