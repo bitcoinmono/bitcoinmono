@@ -41,7 +41,6 @@ void RocksDBWrapper::init(const DataBaseConfig &config)
     rocksdb::DB *dbPtr;
 
     rocksdb::Options dbOptions = getDBOptions(config);
-    dbOptions.enable_pipelined_write=true;
     rocksdb::Status status = rocksdb::DB::Open(dbOptions, dataDir, &dbPtr);
     if (status.ok())
     {
@@ -228,13 +227,12 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
         // don't compress l0 & l1
         fOptions.compression_per_level[i] = (i < 2 ? rocksdb::kNoCompression : compressionLevel);
     }
-    // bottom most use lz4hc
+    // bottom most use kZSTD
     fOptions.bottommost_compression =
         config.getCompressionEnabled() ? rocksdb::kZSTD : rocksdb::kNoCompression;
 
     rocksdb::BlockBasedTableOptions tableOptions;
     tableOptions.block_cache = rocksdb::NewLRUCache(config.getReadCacheSize());
-    tableOptions.block_size = 128*1024;
     std::shared_ptr<rocksdb::TableFactory> tfp(NewBlockBasedTableFactory(tableOptions));
     fOptions.table_factory = tfp;
 

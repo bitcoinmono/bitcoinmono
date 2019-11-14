@@ -484,7 +484,6 @@ namespace CryptoNote
         std::vector<uint64_t> timestamps,
         std::vector<uint64_t> cumulativeDifficulties) const
     {
-
         if (blockIndex >= CryptoNote::parameters::LWMA_2_DIFFICULTY_BLOCK_INDEX_V3)
         {
             return nextDifficultyV5(timestamps, cumulativeDifficulties);
@@ -501,7 +500,6 @@ namespace CryptoNote
         {
             return nextDifficulty(version, blockIndex, timestamps, cumulativeDifficulties);
         }
-
     }
 
     uint64_t Currency::nextDifficulty(
@@ -662,6 +660,10 @@ namespace CryptoNote
         return false;
 
         const auto &block = cachedBlock.getBlock();
+        if (block.majorVersion < BLOCK_MAJOR_VERSION_2)
+        {
+            return false;
+        }
 
         if (!check_hash(cachedBlock.getBlockLongHash(), currentDifficulty))
         {
