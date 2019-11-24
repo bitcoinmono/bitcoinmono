@@ -276,9 +276,24 @@ std::string Error::getErrorMessage() const
         }
         case INVALID_PRIVATE_KEY:
         {
-            return "The private key given is not a valid ed25519 public key.";
+            return "The private key given is not a valid ed25519 private key.";
         }
-            /* No default case so the compiler warns us if we missed one */
+        case INVALID_EXTRA_DATA:
+        {
+            return "The extra data given for the transaction could not be decoded.";
+        }
+        case UNKNOWN_ERROR:
+        {
+            return "An unknown error occurred.";
+        }
+        case DAEMON_STILL_PROCESSING:
+        {
+            return "The transaction was sent to the daemon, but the connection "
+                   "timed out before we could determine if the transaction "
+                   "succeeded. Wait a few minutes before retrying the transaction, "
+                   "as it may still succeed.";
+        }
+        /* No default case so the compiler warns us if we missed one */
     }
 
     throw std::invalid_argument("Invalid error code given");
