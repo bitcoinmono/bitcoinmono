@@ -144,8 +144,6 @@ namespace CryptoNote
             CryptoNote::CryptoNoteProtocolHandler &payload_handler,
             std::shared_ptr<Logging::ILogger> log);
 
-        ~NodeServer() {};
-
         bool run();
 
         bool init(const NetNodeConfig &config);

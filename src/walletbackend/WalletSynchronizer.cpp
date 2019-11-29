@@ -243,7 +243,7 @@ void WalletSynchronizer::blockProcessingThread()
                             globalIndexes = getGlobalIndexes(block.blockHeight);
                         }
 
-                        auto it = globalIndexes.find(input.parentTransactionHash);
+                        const auto it = globalIndexes.find(input.parentTransactionHash);
 
                         /* Daemon returns indexes for hashes in a range. If we don't
                            find our hash, either the chain has forked, or the daemon
@@ -252,20 +252,16 @@ void WalletSynchronizer::blockProcessingThread()
                            forked.
 
                            Also need to check there are enough indexes for the one we want */
-                        while (it == globalIndexes.end() || it->second.size() <= input.transactionIndex)
+                        if (it == globalIndexes.end() || it->second.size() <= input.transactionIndex)
                         {
                             Logger::logger.log(
                                 "Warning: Failed to get correct global indexes from daemon."
                                 "\nIf you see this error message repeatedly, the daemon "
                                 "may be faulty. More likely, the chain just forked.",
-                                Logger::FATAL,
+                                Logger::WARNING,
                                 {Logger::SYNC, Logger::DAEMON});
 
-                            std::this_thread::sleep_for(std::chrono::seconds(5));
-
-                            globalIndexes = getGlobalIndexes(block.blockHeight);
-
-                            it = globalIndexes.find(input.parentTransactionHash);
+                            return;
                         }
 
                         input.globalOutputIndex = it->second[input.transactionIndex];

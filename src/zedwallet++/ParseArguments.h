@@ -28,7 +28,7 @@ struct ZedConfig
     std::string walletPass;
 
     /* Controls what level of messages to log */
-    Logger::LogLevel logLevel = Logger::FATAL;
+    Logger::LogLevel logLevel = Logger::DISABLED;
 
     /* Use SSL with daemon */
     bool ssl = false;
