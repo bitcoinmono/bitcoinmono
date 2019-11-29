@@ -461,20 +461,9 @@ namespace CryptoNote
         }
 
         serializer(header.minorVersion, "minor_version");
-        if (header.majorVersion == BLOCK_MAJOR_VERSION_1)
-        {
-            serializer(header.timestamp, "timestamp");
-            serializer(header.previousBlockHash, "prev_id");
-            serializer.binary(&header.nonce, sizeof(header.nonce), "nonce");
-        }
-        else if (header.majorVersion >= BLOCK_MAJOR_VERSION_2)
-        {
-            serializer(header.previousBlockHash, "prev_id");
-        }
-        else
-        {
-            throw std::runtime_error("Wrong major version");
-        }
+        serializer(header.timestamp, "timestamp");
+        serializer(header.previousBlockHash, "prev_id");
+        serializer.binary(&header.nonce, sizeof(header.nonce), "nonce");
     }
 
     void serialize(BlockHeader &header, ISerializer &serializer)
@@ -485,12 +474,6 @@ namespace CryptoNote
     void serialize(BlockTemplate &block, ISerializer &serializer)
     {
         serializeBlockHeader(block, serializer);
-
-        if (block.majorVersion >= BLOCK_MAJOR_VERSION_2)
-        {
-            auto parentBlockSerializer = makeParentBlockSerializer(block, false, false);
-            serializer(parentBlockSerializer, "parent_block");
-        }
 
         serializer(block.baseTransaction, "miner_tx");
         serializer(block.transactionHashes, "tx_hashes");
