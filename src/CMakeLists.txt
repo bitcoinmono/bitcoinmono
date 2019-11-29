@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/argon2/include)
 # Show cmake where the source files are
 # Note, if you add remove a source file, you will need to re-run cmake so it
 # can find the new file
+file(GLOB_RECURSE BlockchainExplorer blockchainexplorer/*)
 file(GLOB_RECURSE Common common/*)
 file(GLOB_RECURSE Config config/*)
 file(GLOB_RECURSE Crypto crypto/*)
@@ -57,6 +58,7 @@ endif ()
 source_group("" FILES $${Common} ${Config} ${Crypto} ${CryptoNoteCore} ${CryptoNoteProtocol} ${BitcoinMonod} ${JsonRpcServer} ${Http} ${Logging} ${Logger} ${miner} ${Mnemonics} ${Nigel} ${NodeRpcProxy} ${P2p} ${Rpc} ${Serialization} ${System} ${Transfers} ${Wallet} ${WalletApi} ${WalletBackend} ${WalletService} ${zedwallet++} ${CryptoTest} ${Errors} ${Utilities} ${WalletUpgrader} ${SubWallets})
 
 # Define a group of files as a library to link against
+add_library(BlockchainExplorer STATIC ${BlockchainExplorer})
 add_library(Common STATIC ${Common})
 add_library(Config STATIC ${Config})
 add_library(Crypto STATIC ${Crypto})
@@ -113,7 +115,7 @@ add_executable(zedwallet++ ${zedwallet++} ${ZED_WALLET_SOURCES_OS})
 
 if (MSVC)
     target_link_libraries(System ws2_32)
-    target_link_libraries(BitcoinMonod Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
+    target_link_libraries(BitcoinMonod Rpcrt4)
     target_link_libraries(WalletService Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(zedwallet++ ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletApi ws2_32 advapi32 crypt32 gdi32 user32)
@@ -148,7 +150,7 @@ target_link_libraries(Logging Common)
 target_link_libraries(miner Crypto Errors Utilities System Serialization)
 target_link_libraries(Nigel Errors)
 target_link_libraries(NodeRpcProxy Rpc)
-target_link_libraries(P2P upnpc-static Serialization System CryptoNoteCore)
+target_link_libraries(P2P upnpc-static Serialization)
 target_link_libraries(Rpc P2P Utilities CryptoNoteCore)
 target_link_libraries(Serialization Common Crypto ${Boost_LIBRARIES})
 target_link_libraries(SubWallets Common Logger)
@@ -167,7 +169,6 @@ if (OPENSSL_FOUND)
     target_link_libraries(WalletApi ${OPENSSL_LIBRARIES})
     target_link_libraries(zedwallet++ ${OPENSSL_LIBRARIES})
     target_link_libraries(WalletService ${OPENSSL_LIBRARIES})
-    target_link_libraries(BitcoinMonod ${OPENSSL_LIBRARIES})
 endif ()
 
 # Add dependencies means we have to build the latter before we build the former
