@@ -25,6 +25,5 @@ namespace CryptoNote
 
     struct ICryptoNoteProtocolHandler : ICryptoNoteProtocol, public ICryptoNoteProtocolQuery
     {
-        virtual ~ICryptoNoteProtocolHandler() {};
     };
 } // namespace CryptoNote

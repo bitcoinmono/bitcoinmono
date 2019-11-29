@@ -315,13 +315,9 @@ namespace CryptoNote
     {
         assert(!chainsStorage.empty());
         assert(!chainsLeaves.empty());
+        assert(blockIndex <= getTopBlockIndex());
 
         throwIfNotInitialized();
-
-        if (blockIndex > getTopBlockIndex())
-        {
-            return Constants::NULL_HASH;
-        }
 
         return chainsLeaves[0]->getBlockHash(blockIndex);
     }
@@ -849,123 +845,6 @@ namespace CryptoNote
         }
     }
 
-    /* Known block hashes = The hashes the wallet knows about. We'll give blocks starting from this hash.
-       Timestamp = The timestamp to start giving blocks from, if knownBlockHashes is empty. Used for syncing a new
-       wallet. walletBlocks = The returned vector of blocks */
-    bool Core::getRawBlocks(
-        const std::vector<Crypto::Hash> &knownBlockHashes,
-        const uint64_t startHeight,
-        const uint64_t startTimestamp,
-        const uint64_t blockCount,
-        const bool skipCoinbaseTransactions,
-        std::vector<RawBlock> &blocks,
-        std::optional<WalletTypes::TopBlock> &topBlockInfo) const
-    {
-        throwIfNotInitialized();
-
-        try
-        {
-            IBlockchainCache *mainChain = chainsLeaves[0];
-
-            /* Current height */
-            uint64_t currentIndex = mainChain->getTopBlockIndex();
-            Crypto::Hash currentHash = mainChain->getTopBlockHash();
-
-            uint64_t actualBlockCount = std::min(BLOCKS_SYNCHRONIZING_DEFAULT_COUNT, blockCount);
-
-            if (actualBlockCount == 0)
-            {
-                actualBlockCount = BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-            }
-
-            auto [success, timestampBlockHeight] = mainChain->getBlockHeightForTimestamp(startTimestamp);
-
-            /* If no timestamp given, occasionaly the daemon returns a non zero
-           block height... for some reason. Set it back to zero if we didn't
-           give a timestamp to fix this. */
-            if (startTimestamp == 0)
-            {
-                timestampBlockHeight = 0;
-            }
-
-            /* If we couldn't get the first block timestamp, then the node is
-           synced less than the current height, so return no blocks till we're
-           synced. */
-            if (startTimestamp != 0 && !success)
-            {
-                topBlockInfo = WalletTypes::TopBlock({currentHash, currentIndex});
-                return true;
-            }
-
-            /* If a height was given, start from there, else convert the timestamp
-           to a block */
-            uint64_t firstBlockHeight = startHeight == 0 ? timestampBlockHeight : startHeight;
-
-            /* The height of the last block we know about */
-            uint64_t lastKnownBlockHashHeight = static_cast<uint64_t>(findBlockchainSupplement(knownBlockHashes));
-
-            /* Start returning either from the start height, or the height of the
-           last block we know about, whichever is higher */
-            uint64_t startIndex = std::max(
-                /* Plus one so we return the next block - default to zero if it's zero,
-           otherwise genesis block will be skipped. */
-                lastKnownBlockHashHeight == 0 ? 0 : lastKnownBlockHashHeight + 1,
-                firstBlockHeight);
-
-            /* Difference between the start and end */
-            uint64_t blockDifference = currentIndex - startIndex;
-
-            /* Sync actualBlockCount or the amount of blocks between
-           start and end, whichever is smaller */
-            uint64_t endIndex = std::min(actualBlockCount, blockDifference + 1) + startIndex;
-
-            logger(Logging::DEBUGGING) << "\n\n"
-                                       << "\n============================================="
-                                       << "\n========= GetRawBlocks summary ========="
-                                       << "\n* Known block hashes size: " << knownBlockHashes.size()
-                                       << "\n* Blocks requested: " << actualBlockCount
-                                       << "\n* Start height: " << startHeight
-                                       << "\n* Start timestamp: " << startTimestamp
-                                       << "\n* Current index: " << currentIndex
-                                       << "\n* Timestamp block height: " << timestampBlockHeight
-                                       << "\n* First block height: " << firstBlockHeight
-                                       << "\n* Last known block hash height: " << lastKnownBlockHashHeight
-                                       << "\n* Start index: " << startIndex
-                                       << "\n* Block difference: " << blockDifference << "\n* End index: " << endIndex
-                                       << "\n============================================="
-                                       << "\n\n\n";
-
-            /* If we're fully synced, then the start index will be greater than our
-           current block. */
-            if (currentIndex < startIndex)
-            {
-                topBlockInfo = WalletTypes::TopBlock({currentHash, currentIndex});
-                return true;
-            }
-
-            if (skipCoinbaseTransactions)
-            {
-                blocks = mainChain->getNonEmptyBlocks(startIndex, actualBlockCount);
-            }
-            else
-            {
-                blocks = mainChain->getBlocksByHeight(startIndex, endIndex);
-            }
-
-            if (blocks.empty())
-            {
-                topBlockInfo = WalletTypes::TopBlock({currentHash, currentIndex});
-            }
-
-            return true;
-        }
-        catch (std::exception &e)
-        {
-            logger(Logging::ERROR) << "Failed to get wallet sync data: " << e.what();
-            return false;
-        }
-    }
-
     WalletTypes::RawCoinbaseTransaction Core::getRawCoinbaseTransaction(const CryptoNote::Transaction &t)
     {
         WalletTypes::RawCoinbaseTransaction transaction;
@@ -1240,7 +1119,7 @@ namespace CryptoNote
             }
 
             /* Loop through the rawBlock transaction hashes and verify that they are
-       all in the blocktemplate transaction hashes */
+               all in the blocktemplate transaction hashes */
             for (const auto &transaction : transactionHashes)
             {
                 const auto search = std::find(
@@ -1624,7 +1503,7 @@ namespace CryptoNote
         return addBlock(cachedBlock, std::move(rawBlock));
     }
 
-    std::error_code Core::submitBlock(const BinaryArray &rawBlockTemplate)
+    std::error_code Core::submitBlock(BinaryArray &&rawBlockTemplate)
     {
         throwIfNotInitialized();
 
@@ -1688,7 +1567,7 @@ namespace CryptoNote
         return found;
     }
 
-    std::tuple<bool, std::string> Core::getRandomOutputs(
+    bool Core::getRandomOutputs(
         uint64_t amount,
         uint16_t count,
         std::vector<uint32_t> &globalIndexes,
@@ -1698,36 +1577,25 @@ namespace CryptoNote
 
         if (count == 0)
         {
-            return {true, ""};
+            return true;
         }
 
         auto upperBlockLimit = getTopBlockIndex() - currency.minedMoneyUnlockWindow();
-
         if (upperBlockLimit < currency.minedMoneyUnlockWindow())
         {
-            std::string error = "Blockchain height is less than mined unlock window";
-            logger(Logging::DEBUGGING) << error;
-
-            return {false, error};
+            logger(Logging::DEBUGGING) << "Blockchain height is less than mined unlock window";
+            return false;
         }
 
         globalIndexes = chainsLeaves[0]->getRandomOutsByAmount(amount, count, getTopBlockIndex());
-
         if (globalIndexes.empty())
         {
-            std::stringstream stream;
-
-            stream << "Failed to get any matching outputs for amount " << amount << " ("
-                   << Utilities::formatAmount(amount) << "). Further explanation here: "
-                   << "https://gist.github.com/zpalmtree/80b3e80463225bcfb8f8432043cb594c\n"
-                   << "Note: If you are a public node operator, you can safely ignore this message. "
-                   << "It is only relevant to the user sending the transaction.";
-
-            std::string error = stream.str();
-
-            logger(Logging::ERROR) << error;
-
-            return {false, error};
+            logger(Logging::ERROR) << "Failed to get any matching outputs for amount " << amount << " ("
+                                   << Utilities::formatAmount(amount) << "). Further explanation here: "
+                                   << "https://gist.github.com/zpalmtree/80b3e80463225bcfb8f8432043cb594c\n"
+                                   << "Note: If you are a public node operator, you can safely ignore this message. "
+                                   << "It is only relevant to the user sending the transaction.";
+            return false;
         }
 
         std::sort(globalIndexes.begin(), globalIndexes.end());
@@ -1736,30 +1604,16 @@ namespace CryptoNote
             amount, getTopBlockIndex(), {globalIndexes.data(), globalIndexes.size()}, publicKeys))
         {
             case ExtractOutputKeysResult::SUCCESS:
-            {
-                return {true, ""};
-            }
+                return true;
             case ExtractOutputKeysResult::INVALID_GLOBAL_INDEX:
-            {
-                std::string error = "Invalid global index is given";
-
-                logger(Logging::DEBUGGING) << error;
-
-                return {false, error};
-            }
+                logger(Logging::DEBUGGING) << "Invalid global index is given";
+                return false;
             case ExtractOutputKeysResult::OUTPUT_LOCKED:
-            {
-                std::string error = "Output is locked";
-
-                logger(Logging::DEBUGGING) << error;
-
-                return {false, error};
-            }
-            default:
-            {
-                return {false, "Unknown error"};
-            }
+                logger(Logging::DEBUGGING) << "Output is locked";
+                return false;
         }
+
+        return false;
     }
 
     bool Core::getGlobalIndexesForRange(
@@ -1862,6 +1716,23 @@ namespace CryptoNote
         TransactionValidatorState &validatorState)
     {
         const auto transactionHash = cachedTransaction.getTransactionHash();
+
+        /* If there are already a certain number of fusion transactions in
+           the pool, then do not try to add another */
+        if (cachedTransaction.getTransactionFee() == 0
+            && transactionPool->getFusionTransactionCount() >= CryptoNote::parameters::FUSION_TX_MAX_POOL_COUNT)
+        {
+            return {false, "Pool already contains the maximum amount of fusion transactions"};
+        }
+
+        if (cachedTransaction.getTransaction().outputs.size() >
+            cachedTransaction.getTransaction().inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            logger(Logging::TRACE) << "Not adding transaction " << transactionHash
+                                   << " to transaction pool, excessive input deconstruction.";
+
+            return {false, "Transaction has an excessive number of outputs for the input count"};
+        }
 
         auto [success, err] = Mixins::validate({cachedTransaction}, getTopBlockIndex());
 
@@ -1977,10 +1848,9 @@ namespace CryptoNote
         return getTopBlockHash() == lastBlockHash;
     }
 
-    std::tuple<bool, std::string> Core::getBlockTemplate(
+    bool Core::getBlockTemplate(
         BlockTemplate &b,
-        const Crypto::PublicKey &publicViewKey,
-        const Crypto::PublicKey &publicSpendKey,
+        const AccountPublicAddress &adr,
         const BinaryArray &extraNonce,
         uint64_t &difficulty,
         uint32_t &height) const
@@ -1989,14 +1859,10 @@ namespace CryptoNote
 
         height = getTopBlockIndex() + 1;
         difficulty = getDifficultyForNextBlock();
-
         if (difficulty == 0)
         {
-            std::string error = "Cannot create block template, difficulty is zero. Oh shit, you fucked up hard!";
-
-            logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-            return {false, error};
+            logger(Logging::ERROR, Logging::BRIGHT_RED) << "difficulty overhead.";
+            return false;
         }
 
         b = boost::value_initialized<BlockTemplate>();
@@ -2098,19 +1964,14 @@ namespace CryptoNote
             alreadyGeneratedCoins,
             transactionsSize,
             fee,
-            publicViewKey,
-            publicSpendKey,
+            adr,
             b.baseTransaction,
             extraNonce,
             11);
-
         if (!r)
         {
-            std::string error = "Failed to construct miner transaction";
-
-            logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-            return {false, error};
+            logger(Logging::ERROR, Logging::BRIGHT_RED) << "Failed to construct miner tx, first chance";
+            return false;
         }
 
         size_t cumulativeSize = transactionsSize + getObjectBinarySize(b.baseTransaction);
@@ -2124,19 +1985,14 @@ namespace CryptoNote
                 alreadyGeneratedCoins,
                 cumulativeSize,
                 fee,
-                publicViewKey,
-                publicSpendKey,
+                adr,
                 b.baseTransaction,
                 extraNonce,
                 11);
-
             if (!r)
             {
-                std::string error = "Failed to construct miner transaction";
-
-                logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-                return {false, error};
+                logger(Logging::ERROR, Logging::BRIGHT_RED) << "Failed to construct miner tx, second chance";
+                return false;
             }
 
             size_t coinbaseBlobSize = getObjectBinarySize(b.baseTransaction);
@@ -2156,17 +2012,11 @@ namespace CryptoNote
                 {
                     if (!(cumulativeSize + 1 == transactionsSize + getObjectBinarySize(b.baseTransaction)))
                     {
-                        std::stringstream stream;
-
-                        stream << "unexpected case: cumulative_size=" << cumulativeSize
-                               << " + 1 is not equal txs_cumulative_size=" << transactionsSize
-                               << " + get_object_blobsize(b.baseTransaction)=" << getObjectBinarySize(b.baseTransaction);
-
-                        std::string error = stream.str();
-
-                        logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-                        return {false, error};
+                        logger(Logging::ERROR, Logging::BRIGHT_RED)
+                            << "unexpected case: cumulative_size=" << cumulativeSize
+                            << " + 1 is not equal txs_cumulative_size=" << transactionsSize
+                            << " + get_object_blobsize(b.baseTransaction)=" << getObjectBinarySize(b.baseTransaction);
+                        return false;
                     }
 
                     b.baseTransaction.extra.resize(b.baseTransaction.extra.size() - 1);
@@ -2187,27 +2037,19 @@ namespace CryptoNote
             }
             if (!(cumulativeSize == transactionsSize + getObjectBinarySize(b.baseTransaction)))
             {
-                std::stringstream stream;
-
-                stream << "unexpected case: cumulative_size=" << cumulativeSize
-                       << " is not equal txs_cumulative_size=" << transactionsSize
-                       << " + get_object_blobsize(b.baseTransaction)=" << getObjectBinarySize(b.baseTransaction);
-
-                std::string error = stream.str();
-
-                logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-                return {false, error};
+                logger(Logging::ERROR, Logging::BRIGHT_RED)
+                    << "unexpected case: cumulative_size=" << cumulativeSize
+                    << " is not equal txs_cumulative_size=" << transactionsSize
+                    << " + get_object_blobsize(b.baseTransaction)=" << getObjectBinarySize(b.baseTransaction);
+                return false;
             }
 
-            return {true, std::string()};
+            return true;
         }
 
-        std::string error = "Failed to create block template";
-
-        logger(Logging::ERROR, Logging::BRIGHT_RED) << error;
-
-        return {false, error};
+        logger(Logging::ERROR, Logging::BRIGHT_RED)
+            << "Failed to create_block_template with " << TRIES_COUNT << " tries";
+        return false;
     }
 
     CoreStatistics Core::getCoreStatistics() const
@@ -2296,6 +2138,12 @@ namespace CryptoNote
         if (error != error::TransactionValidationError::VALIDATION_SUCCESS)
         {
             return error;
+        }
+
+        if (blockIndex >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1_HEIGHT &&
+            transaction.outputs.size() > transaction.inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            return error::TransactionValidationError::EXCESSIVE_OUTPUTS;
         }
 
         size_t inputIndex = 0;
@@ -3099,6 +2947,16 @@ namespace CryptoNote
     {
         const auto &transaction = cachedTransaction.getTransaction();
 
+        /* Do not select transactions for inclusion in a block that create excessive outputs
+           this is to prevent abuse whereby 1 input is used to create thousands of outputs */
+        if (transaction.outputs.size() > transaction.inputs.size() * CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_RATIO_V1)
+        {
+            logger(Logging::TRACE) << "Not adding transaction " << cachedTransaction.getTransactionHash()
+                                   << " to block template, excessive input deconstruction.";
+
+            return false;
+        }
+
         if (transaction.extra.size() >= CryptoNote::parameters::MAX_EXTRA_SIZE_V2)
         {
             logger(Logging::TRACE) << "Not adding transaction " << cachedTransaction.getTransactionHash()
@@ -3143,7 +3001,7 @@ namespace CryptoNote
             [this, &spentInputsChecker, maxTotalSize, height, &transactionsSize, &fee, &block](
                 const CachedTransaction &transaction) {
                 /* If the current set of transactions included in the blocktemplate plus the transaction
-             we just passed in exceed the maximum size of a block, it won't fit so we'll move on */
+                   we just passed in exceed the maximum size of a block, it won't fit so we'll move on */
                 if (transactionsSize + transaction.getTransactionBinaryArray().size() > maxTotalSize)
                 {
                     return false;
@@ -3158,7 +3016,7 @@ namespace CryptoNote
                 }
 
                 /* Make sure that we have not already spent funds in this same block via
-             another transaction that we've already included in this block template */
+                   another transaction that we've already included in this block template */
                 if (!spentInputsChecker.haveSpentInputs(transaction.getTransaction()))
                 {
                     transactionsSize += transaction.getTransactionBinaryArray().size();

@@ -111,15 +111,6 @@ namespace CryptoNote
             std::vector<WalletTypes::WalletBlockInfo> &walletBlocks,
             std::optional<WalletTypes::TopBlock> &topBlockInfo) const override;
 
-        virtual bool getRawBlocks(
-            const std::vector<Crypto::Hash> &knownBlockHashes,
-            const uint64_t startHeight,
-            const uint64_t startTimestamp,
-            const uint64_t blockCount,
-            const bool skipCoinbaseTransactions,
-            std::vector<RawBlock> &walletBlocks,
-            std::optional<WalletTypes::TopBlock> &topBlockInfo) const override;
-
         virtual bool getTransactionsStatus(
             std::unordered_set<Crypto::Hash> transactionHashes,
             std::unordered_set<Crypto::Hash> &transactionsInPool,
@@ -143,13 +134,13 @@ namespace CryptoNote
 
         virtual std::error_code addBlock(RawBlock &&rawBlock) override;
 
-        virtual std::error_code submitBlock(const BinaryArray &rawBlockTemplate) override;
+        virtual std::error_code submitBlock(BinaryArray &&rawBlockTemplate) override;
 
         virtual bool getTransactionGlobalIndexes(
             const Crypto::Hash &transactionHash,
             std::vector<uint32_t> &globalIndexes) const override;
 
-        virtual std::tuple<bool, std::string> getRandomOutputs(
+        virtual bool getRandomOutputs(
             uint64_t amount,
             uint16_t count,
             std::vector<uint32_t> &globalIndexes,
@@ -178,10 +169,9 @@ namespace CryptoNote
             std::vector<TransactionPrefixInfo> &addedTransactions,
             std::vector<Crypto::Hash> &deletedTransactions) const override;
 
-        virtual std::tuple<bool, std::string> getBlockTemplate(
+        virtual bool getBlockTemplate(
             BlockTemplate &b,
-            const Crypto::PublicKey &publicViewKey,
-            const Crypto::PublicKey &publicSpendKey,
+            const AccountPublicAddress &adr,
             const BinaryArray &extraNonce,
             uint64_t &difficulty,
             uint32_t &height) const override;

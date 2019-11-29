@@ -38,8 +38,6 @@ namespace CryptoNote
             IP2pEndpoint *p_net_layout,
             std::shared_ptr<Logging::ILogger> log);
 
-        virtual ~CryptoNoteProtocolHandler() override {};
-
         virtual bool addObserver(ICryptoNoteProtocolObserver *observer) override;
 
         virtual bool removeObserver(ICryptoNoteProtocolObserver *observer) override;

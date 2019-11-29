@@ -325,8 +325,7 @@ namespace CryptoNote
             uint64_t alreadyGeneratedCoins,
             size_t currentBlockSize,
             uint64_t fee,
-            const Crypto::PublicKey &publicViewKey,
-            const Crypto::PublicKey &publicSpendKey,
+            const AccountPublicAddress &minerAddress,
             Transaction &tx,
             const BinaryArray &extraNonce = BinaryArray(),
             size_t maxOuts = 1) const;
