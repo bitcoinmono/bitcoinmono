@@ -232,7 +232,7 @@ namespace CryptoNote
            to help curtail fusion transaction spam. */
         const size_t FUSION_TX_MAX_POOL_COUNT = 20;
 
-        const size_t NORMAL_TX_MAX_OUTPUT_RATIO_V1 = 20;
+        const size_t NORMAL_TX_MAX_OUTPUT_RATIO_V1 = 50;
 
         const size_t NORMAL_TX_MAX_OUTPUT_RATIO_V1_HEIGHT = 1000000;
 
