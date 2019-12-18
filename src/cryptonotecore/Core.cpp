@@ -1170,8 +1170,18 @@ namespace CryptoNote
                 validateTransaction(transaction, validatorState, cache, fee, previousBlockIndex);
             if (transactionValidationResult)
             {
-                logger(Logging::DEBUGGING) << "Failed to validate transaction " << transaction.getTransactionHash()
+                const auto hash = transaction.getTransactionHash();
+
+                logger(Logging::DEBUGGING) << "Failed to validate transaction " << hash
                                            << ": " << transactionValidationResult.message();
+
+                if (transactionPool->checkIfTransactionPresent(hash))
+                {
+                    logger(Logging::DEBUGGING) << "Invalid transaction " << hash << " is present in the pool, removing";
+                    transactionPool->removeTransaction(hash);
+                    notifyObservers(makeDelTransactionMessage({hash}, Messages::DeleteTransaction::Reason::NotActual));
+                }
+
                 return transactionValidationResult;
             }
 
