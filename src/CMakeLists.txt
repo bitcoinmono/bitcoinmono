@@ -187,7 +187,7 @@ add_dependencies(zedwallet++ version)
 
 # Finally build the binaries
 set_property(TARGET BitcoinMonod PROPERTY OUTPUT_NAME "BitcoinMonod")
-set_property(TARGET zedwallet++ PROPERTY OUTPUT_NAME "zedwallet")
+set_property(TARGET zedwallet++ PROPERTY OUTPUT_NAME "zedwallet-new")
 set_property(TARGET WalletService PROPERTY OUTPUT_NAME "BitcoinMono-service")
 set_property(TARGET miner PROPERTY OUTPUT_NAME "miner")
 set_property(TARGET cryptotest PROPERTY OUTPUT_NAME "cryptotest")
