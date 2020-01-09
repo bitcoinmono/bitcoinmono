@@ -263,7 +263,7 @@ namespace CryptoNote
 #define INVOKE_HANDLER(CMD, Handler)                                                           \
     case CMD::ID:                                                                              \
     {                                                                                          \
-        ret = invokeAdaptor<CMD>(cmd.buf, out, ctx, std::bind(Handler, this, _1, _2, _3, _4)); \
+        ret = invokeAdaptor<CMD>(cmd.buf, out, ctx, std::bind(Handler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)); \
         break;                                                                                 \
     }
 

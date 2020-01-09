@@ -19,6 +19,7 @@ namespace Logger
         FATAL = 1,
         DISABLED = 0,
     };
+
     enum LogCategory
     {
         SYNC,
@@ -26,7 +27,8 @@ namespace Logger
         FILESYSTEM,
         SAVE,
         DAEMON,
-		DATABASE,
+        DAEMON_RPC,
+        DATABASE,
     };
 
     std::string logLevelToString(const LogLevel level);
