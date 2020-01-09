@@ -239,7 +239,8 @@ namespace CryptoNote
         uint64_t alreadyGeneratedCoins,
         size_t currentBlockSize,
         uint64_t fee,
-        const AccountPublicAddress &minerAddress,
+        const Crypto::PublicKey &publicViewKey,
+        const Crypto::PublicKey &publicSpendKey,
         Transaction &tx,
         const BinaryArray &extraNonce /* = BinaryArray()*/,
         size_t maxOuts /* = 1*/) const
@@ -300,21 +301,21 @@ namespace CryptoNote
             Crypto::KeyDerivation derivation;
             Crypto::PublicKey outEphemeralPubKey;
 
-            bool r = Crypto::generate_key_derivation(minerAddress.viewPublicKey, txkey.secretKey, derivation);
+            bool r = Crypto::generate_key_derivation(publicViewKey, txkey.secretKey, derivation);
 
             if (!(r))
             {
                 logger(ERROR, BRIGHT_RED) << "while creating outs: failed to generate_key_derivation("
-                                          << minerAddress.viewPublicKey << ", " << txkey.secretKey << ")";
+                                          << publicViewKey << ", " << txkey.secretKey << ")";
                 return false;
             }
 
-            r = Crypto::derive_public_key(derivation, no, minerAddress.spendPublicKey, outEphemeralPubKey);
+            r = Crypto::derive_public_key(derivation, no, publicSpendKey, outEphemeralPubKey);
 
             if (!(r))
             {
                 logger(ERROR, BRIGHT_RED) << "while creating outs: failed to derive_public_key(" << derivation << ", "
-                                          << no << ", " << minerAddress.spendPublicKey << ")";
+                                          << no << ", " << publicSpendKey << ")";
                 return false;
             }
 
@@ -880,8 +881,14 @@ namespace CryptoNote
     Transaction CurrencyBuilder::generateGenesisTransaction()
     {
         CryptoNote::Transaction tx;
-        CryptoNote::AccountPublicAddress ac;
-        m_currency.constructMinerTx(1, 0, 0, 0, 0, 0, ac, tx); // zero fee in genesis
+
+        const auto publicViewKey = Constants::NULL_PUBLIC_KEY;
+        const auto publicSpendKey = Constants::NULL_PUBLIC_KEY;
+
+        m_currency.constructMinerTx(
+            1, 0, 0, 0, 0, 0, publicViewKey, publicSpendKey, tx
+        );
+
         return tx;
     }
 

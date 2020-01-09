@@ -27,6 +27,7 @@
 #include <logging/LoggerMessage.h>
 #include <system/ContextGroup.h>
 #include <unordered_map>
+#include <utilities/ThreadPool.h>
 #include <vector>
 
 namespace CryptoNote
@@ -40,7 +41,8 @@ namespace CryptoNote
             Checkpoints &&checkpoints,
             System::Dispatcher &dispatcher,
             std::unique_ptr<IBlockchainCacheFactory> &&blockchainCacheFactory,
-            std::unique_ptr<IMainChainStorage> &&mainChainStorage);
+            std::unique_ptr<IMainChainStorage> &&mainChainStorage,
+            uint32_t transactionValidationThreads);
 
         virtual ~Core();
 
@@ -111,6 +113,15 @@ namespace CryptoNote
             std::vector<WalletTypes::WalletBlockInfo> &walletBlocks,
             std::optional<WalletTypes::TopBlock> &topBlockInfo) const override;
 
+        virtual bool getRawBlocks(
+            const std::vector<Crypto::Hash> &knownBlockHashes,
+            const uint64_t startHeight,
+            const uint64_t startTimestamp,
+            const uint64_t blockCount,
+            const bool skipCoinbaseTransactions,
+            std::vector<RawBlock> &walletBlocks,
+            std::optional<WalletTypes::TopBlock> &topBlockInfo) const override;
+
         virtual bool getTransactionsStatus(
             std::unordered_set<Crypto::Hash> transactionHashes,
             std::unordered_set<Crypto::Hash> &transactionsInPool,
@@ -134,13 +145,13 @@ namespace CryptoNote
 
         virtual std::error_code addBlock(RawBlock &&rawBlock) override;
 
-        virtual std::error_code submitBlock(BinaryArray &&rawBlockTemplate) override;
+        virtual std::error_code submitBlock(const BinaryArray &rawBlockTemplate) override;
 
         virtual bool getTransactionGlobalIndexes(
             const Crypto::Hash &transactionHash,
             std::vector<uint32_t> &globalIndexes) const override;
 
-        virtual bool getRandomOutputs(
+        virtual std::tuple<bool, std::string> getRandomOutputs(
             uint64_t amount,
             uint16_t count,
             std::vector<uint32_t> &globalIndexes,
@@ -169,12 +180,13 @@ namespace CryptoNote
             std::vector<TransactionPrefixInfo> &addedTransactions,
             std::vector<Crypto::Hash> &deletedTransactions) const override;
 
-        virtual bool getBlockTemplate(
+        virtual std::tuple<bool, std::string> getBlockTemplate(
             BlockTemplate &b,
-            const AccountPublicAddress &adr,
+            const Crypto::PublicKey &publicViewKey,
+            const Crypto::PublicKey &publicSpendKey,
             const BinaryArray &extraNonce,
             uint64_t &difficulty,
-            uint32_t &height) const override;
+            uint32_t &height) override;
 
         virtual CoreStatistics getCoreStatistics() const override;
 
@@ -197,7 +209,7 @@ namespace CryptoNote
 
         virtual BlockDetails getBlockDetails(const Crypto::Hash &blockHash) const override;
 
-        BlockDetails getBlockDetails(const uint32_t blockHeight) const;
+        BlockDetails getBlockDetails(const uint32_t blockHeight, const uint32_t attempt = 0) const;
 
         virtual TransactionDetails getTransactionDetails(const Crypto::Hash &transactionHash) const override;
 
@@ -207,6 +219,10 @@ namespace CryptoNote
         virtual std::vector<Crypto::Hash> getTransactionHashesByPaymentId(const Crypto::Hash &paymentId) const override;
 
         virtual uint64_t get_current_blockchain_height() const;
+
+        static WalletTypes::RawCoinbaseTransaction getRawCoinbaseTransaction(const CryptoNote::Transaction &t);
+
+        static WalletTypes::RawTransaction getRawTransaction(const std::vector<uint8_t> &rawTX);
 
       private:
         const Currency &currency;
@@ -237,6 +253,8 @@ namespace CryptoNote
 
         std::unique_ptr<IMainChainStorage> mainChainStorage;
 
+        Utilities::ThreadPool<bool> m_transactionValidationThreadPool;
+
         bool initialized;
 
         time_t start_time;
@@ -250,14 +268,14 @@ namespace CryptoNote
             std::vector<CachedTransaction> &transactions,
             uint64_t &cumulativeSize);
 
-        std::error_code validateSemantic(const Transaction &transaction, uint64_t &fee, uint32_t blockIndex);
-
         std::error_code validateTransaction(
             const CachedTransaction &transaction,
             TransactionValidatorState &state,
             IBlockchainCache *cache,
+            Utilities::ThreadPool<bool> &threadPool,
             uint64_t &fee,
-            uint32_t blockIndex);
+            uint32_t blockIndex,
+            const bool isPoolTransaction);
 
         uint32_t findBlockchainSupplement(const std::vector<Crypto::Hash> &remoteBlockIds) const;
 
@@ -336,8 +354,7 @@ namespace CryptoNote
 
         size_t calculateCumulativeBlocksizeLimit(uint32_t height) const;
 
-        bool validateBlockTemplateTransaction(const CachedTransaction &cachedTransaction, const uint64_t blockHeight)
-            const;
+        bool validateBlockTemplateTransaction(const CachedTransaction &cachedTransaction, const uint64_t blockHeight);
 
         void fillBlockTemplate(
             BlockTemplate &block,
@@ -345,7 +362,7 @@ namespace CryptoNote
             const size_t maxCumulativeSize,
             const uint64_t height,
             size_t &transactionsSize,
-            uint64_t &fee) const;
+            uint64_t &fee);
 
         void deleteAlternativeChains();
 
@@ -390,10 +407,6 @@ namespace CryptoNote
         void cutSegment(IBlockchainCache &segment, uint32_t startIndex);
 
         void switchMainChainStorage(uint32_t splitBlockIndex, IBlockchainCache &newChain);
-
-        static WalletTypes::RawCoinbaseTransaction getRawCoinbaseTransaction(const CryptoNote::Transaction &t);
-
-        static WalletTypes::RawTransaction getRawTransaction(const std::vector<uint8_t> &rawTX);
     };
 
 } // namespace CryptoNote
