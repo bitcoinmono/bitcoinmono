@@ -101,8 +101,20 @@ namespace CryptoNote
         const uint64_t MINIMUM_FEE = UINT64_C(5000000); // old fee - new fee v2 is 500 btcmz - 5000000 atomic unit
         
         /* New fee V2 */
-        const uint64_t MINIMUM_FEE_V2        = UINT64_C(5000000); // 500 btcmz
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 399000; // 500 btcmz
+        /* Fee per byte is rounded up in chunks. This helps makes estimates
+         * more accurate. It's suggested to make this a power of two, to relate
+         * to the underlying storage cost / page sizes for storing a transaction. */
+        const uint64_t FEE_PER_BYTE_CHUNK_SIZE = 256;
+
+        /* Fee to charge per byte of transaction. Will be applied in chunks, see
+         * above. This value comes out to 1.953125. We use this value instead of
+         * something like 200 because it makes for pretty resulting fees
+         * - 5 BTCMZ vs 5.12 BTCMZ. You can read this as.. the fee per chunk
+         * is 50000 atomic units. The fee per byte is 50000 / chunk size. */
+        const double MINIMUM_FEE_PER_BYTE_V1 = 50000.00 / FEE_PER_BYTE_CHUNK_SIZE;
+
+        /* Height for our first fee to byte change to take effect. */
+        const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 1000000; // To change
         
         /* Dynamic fee - In process */
         const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 500 btcmz
@@ -232,9 +244,9 @@ namespace CryptoNote
            to help curtail fusion transaction spam. */
         const size_t FUSION_TX_MAX_POOL_COUNT = 20;
 
-        const size_t NORMAL_TX_MAX_OUTPUT_RATIO_V1 = 50;
+        const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1 = 90;
 
-        const size_t NORMAL_TX_MAX_OUTPUT_RATIO_V1_HEIGHT = 1000000;
+        const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT = 1000000;
 
         const uint32_t UPGRADE_HEIGHT_V2 = 1;
 

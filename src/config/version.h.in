@@ -3,12 +3,12 @@
 
 #define PROJECT_NAME "BitcoinMono"
 #define PROJECT_SITE "https://bitcoinmono.io"
-#define PROJECT_COPYRIGHT "Copyright 2019, BitcoinMono"
+#define PROJECT_COPYRIGHT "Copyright 2019-2020, BitcoinMono"
 
 #define APP_VER_MAJOR 2
 #define APP_VER_MINOR 0
 #define APP_VER_REV 8
-#define APP_VER_BUILD 2
+#define APP_VER_BUILD 3
 
 #define BUILD_COMMIT_ID "@VERSION@"
 #define PROJECT_VERSION STR(APP_VER_MAJOR) "." STR(APP_VER_MINOR) "." STR(APP_VER_REV)
