@@ -52,10 +52,10 @@ namespace WalletConfig
     const uint16_t integratedAddressLength = standardAddressLength + ((64 * 11) / 8);
 
     /* The default fee value to use with transactions (in ATOMIC units!) - 500 BTMZ */
-    const uint64_t defaultFee = CryptoNote::parameters::MINIMUM_FEE_V2;
+    const uint64_t defaultFee = CryptoNote::parameters::MINIMUM_FEE;
 
     /* The minimum fee value to allow with transactions (in ATOMIC units!)  - 500 BTMZ*/
-    const uint64_t minimumFee = CryptoNote::parameters::MINIMUM_FEE_V2;
+    const uint64_t minimumFee = CryptoNote::parameters::MINIMUM_FEE;
 
     /* The minimum amount allowed to be sent - usually 1 (in ATOMIC units!) */
     const uint64_t minimumSend = 10000;
