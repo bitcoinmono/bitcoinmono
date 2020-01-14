@@ -110,16 +110,14 @@ namespace CryptoNote
          * above. This value comes out to 1.953125. We use this value instead of
          * something like 200 because it makes for pretty resulting fees
          * - 5 BTCMZ vs 5.12 BTCMZ. You can read this as.. the fee per chunk
-         * is 50000 atomic units. The fee per byte is 50000 / chunk size. */
-        const double MINIMUM_FEE_PER_BYTE_V1 = 50000.00 / FEE_PER_BYTE_CHUNK_SIZE;
+         * is 512000 atomic units. The fee per byte is 512000 / chunk size. */
+        const double MINIMUM_FEE_PER_BYTE_V1 = 512000.00 / FEE_PER_BYTE_CHUNK_SIZE; // 1kB = 0.8 BTCMZ
 
         /* Height for our first fee to byte change to take effect. */
         const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 1000000; // To change
         
-        /* Dynamic fee - In process */
-        const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 500 btcmz
-        const uint64_t FEE_PER_KB  = UINT64_C(1000); // 0.1 btcmz per kB
-        const uint64_t FEE_PER_OUTPUT  = UINT64_C(10000); // 1 btcmz per output
+        /* Backward compatibility */
+        const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 500 btcmz no impact from size
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V1 = 0;
