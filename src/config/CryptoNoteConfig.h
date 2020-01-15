@@ -114,7 +114,7 @@ namespace CryptoNote
         const double MINIMUM_FEE_PER_BYTE_V1 = 2000.00 / FEE_PER_BYTE_CHUNK_SIZE; // 1 chunk = 0.2 BTCMZ fee - 1kB = 2000 * 4 = 0.8 BTCMZ
 
         /* Height for our first fee to byte change to take effect. */
-        const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 1000000; // To change
+        const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 580000; // To change
         
         /* Backward compatibility */
         const uint64_t ACCEPTABLE_FEE = UINT64_C(5000000); // 500 btcmz no impact from size
