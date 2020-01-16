@@ -218,6 +218,9 @@ namespace CryptoNote
 
     bool TransactionPool::checkIfTransactionPresent(const Crypto::Hash &hash) const
     {
+        if (transactionHashIndex.find(hash) == transactionHashIndex.end() && transactionHashIndex.size() > 1) {
+            logger(Logging::INFO) << "Found at " << transactionHashIndex.find(hash) << " in pool of total txes : " << transactionHashIndex.size();
+        }
         return transactionHashIndex.find(hash) != transactionHashIndex.end();
     }
 
