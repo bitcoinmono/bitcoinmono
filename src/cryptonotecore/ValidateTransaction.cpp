@@ -366,6 +366,7 @@ bool ValidateTransaction::validateTransactionFee()
                 m_cachedTransaction.getTransactionBinaryArray().size(),
                 m_blockHeight
             );
+            if (minFee > CryptoNote::parameters::ACCEPTABLE_FEE) minFee = CryptoNote::parameters::ACCEPTABLE_FEE;
 
             validFee = fee >= minFee;
         }
