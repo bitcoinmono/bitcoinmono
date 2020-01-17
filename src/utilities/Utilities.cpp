@@ -224,9 +224,11 @@ namespace Utilities
         const uint64_t numChunks = static_cast<uint64_t>(std::ceil(
             transactionSize / static_cast<double>(CryptoNote::parameters::FEE_PER_BYTE_CHUNK_SIZE)
         ));
+        uint64_t minFee = numChunks * feePerByte * CryptoNote::parameters::FEE_PER_BYTE_CHUNK_SIZE;
+        if (minFee > CryptoNote::parameters::ACCEPTABLE_FEE) minFee = CryptoNote::parameters::ACCEPTABLE_FEE;
 
         return static_cast<uint64_t>(
-            numChunks * feePerByte * CryptoNote::parameters::FEE_PER_BYTE_CHUNK_SIZE
+            minFee
         );
     }
 
