@@ -111,7 +111,7 @@ namespace CryptoNote
          * something like 200 because it makes for pretty resulting fees
          * - 5 BTCMZ vs 5.12 BTCMZ. You can read this as.. the fee per chunk
          * is 512000 atomic units. The fee per byte is 512000 / chunk size. */
-        const double MINIMUM_FEE_PER_BYTE_V1 = 35000.00 / FEE_PER_BYTE_CHUNK_SIZE; // 1 chunk = 3.5 BTCMZ fee - 1kB = 35000 * 4 = 14.0 BTCMZ
+        const double MINIMUM_FEE_PER_BYTE_V1 = 65000.00 / FEE_PER_BYTE_CHUNK_SIZE; // 1 chunk = 6.5 BTCMZ fee - 1kB = 65000 * 4 = 26.0 BTCMZ
 
         /* Height for our first fee to byte change to take effect. */
         const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 580000; // To change
