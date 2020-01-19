@@ -159,7 +159,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(tx);
 
-        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, tx))
+        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, daemon->networkBlockCount(), tx))
         {
             return {UNEXPECTED_FEE, Crypto::Hash()};
         }
@@ -476,7 +476,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(txResult.transaction);
 
-        if (!verifyTransactionFee(fee, actualFee, txResult.transaction))
+        if (!verifyTransactionFee(fee, actualFee, daemon->networkBlockCount(), txResult.transaction))
         {
             return {UNEXPECTED_FEE, Crypto::Hash(), txInfo};
         }
@@ -1454,6 +1454,7 @@ namespace SendTransaction
     bool verifyTransactionFee(
         const WalletTypes::FeeType expectedFee,
         const uint64_t actualFee,
+        const uint64_t height,
         const CryptoNote::Transaction tx)
     {
         const bool isFusion = expectedFee.isFixedFee && expectedFee.fixedFee == 0;
