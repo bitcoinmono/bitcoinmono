@@ -1458,7 +1458,7 @@ namespace SendTransaction
         const CryptoNote::Transaction tx)
     {
         const bool isFusion = expectedFee.isFixedFee && expectedFee.fixedFee == 0;
-        if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && !isFusion) return CryptoNote::parameters::MINIMUM_FEE;
+        if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && !isFusion) return actualFee >= CryptoNote::parameters::MINIMUM_FEE;
 
         if (expectedFee.isFixedFee)
         {
