@@ -221,7 +221,7 @@ namespace Utilities
         const uint64_t height,
         const double feePerByte)
     {
-        if (height < cryptonote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT) return cryptonote::parameters::MINIMUM_FEE;
+        if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT) return CryptoNote::parameters::MINIMUM_FEE;
         const uint64_t numChunks = static_cast<uint64_t>(std::ceil(
             transactionSize / static_cast<double>(CryptoNote::parameters::FEE_PER_BYTE_CHUNK_SIZE)
         ));
