@@ -1459,9 +1459,10 @@ namespace SendTransaction
     {
         const bool isFusion = expectedFee.isFixedFee && expectedFee.fixedFee == 0;
         
-        if (!isFusion) { // special cases, 100*ACCEPTABLE_FEE ceiling to avoid too much fee mistake
+        if (!isFusion) { // special cases, 1000*ACCEPTABLE_FEE ceiling to avoid too much fee mistake
+            if (actualFee > CryptoNote::parameters::ACCEPTABLE_FEE * 1000 && CryptoNote::parameters::ACCEPTABLE_FEE > CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1 * 1024)
+                return false;
             if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT) return actualFee >= CryptoNote::parameters::MINIMUM_FEE;
-            if (actualFee > CryptoNote::parameters::ACCEPTABLE_FEE * 100)        return false;
         }
 
         if (expectedFee.isFixedFee)
