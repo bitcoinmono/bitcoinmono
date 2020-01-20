@@ -358,11 +358,16 @@ namespace SendTransaction
                         ? fee.feePerByte
                         : CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1;
 
-                    const uint64_t estimatedFee = Utilities::getTransactionFee(
+                    uint64_t estimatedFee = Utilities::getTransactionFee(
                         transactionSize,
                         daemon->networkBlockCount(),
                         feePerByte
                     );
+                    // pre-fork we still need assure the previous minimum fee
+                    const uint64_t height = daemon->networkBlockCount();
+                    if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                        actualFee = CryptoNote::parameters::MINIMUM_FEE;
+                    }
 
                     if (sendAll)
                     {
@@ -608,16 +613,11 @@ namespace SendTransaction
 
             const size_t actualTxSize = toBinaryArray(txResult.transaction).size();
 
-            uint64_t actualFee = Utilities::getTransactionFee(
+            const uint64_t actualFee = Utilities::getTransactionFee(
                 actualTxSize,
                 daemon->networkBlockCount(),
                 feePerByte
             );
-            // pre-fork we still need assure the previous minimum fee
-            const uint64_t height = daemon->networkBlockCount();
-            if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
-                actualFee = CryptoNote::parameters::MINIMUM_FEE;
-            }
 
             /* Great! The fee we estimated is greater than or equal
              * to the min/specified fee per byte for a transaction

@@ -1795,6 +1795,11 @@ namespace CryptoNote
                         m_node.getLastKnownBlockHeight(),
                         feePerByte
                     );
+                    // pre-fork we still need assure the previous minimum fee
+                    const uint64_t height = m_node.getLastKnownBlockHeight();
+                    if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                        estimatedFee = CryptoNote::parameters::MINIMUM_FEE;
+                    }
                 }
 
                 /* Update change with actual fee */
@@ -1835,16 +1840,11 @@ namespace CryptoNote
 
                     preparedTransaction.transaction = makeTransaction(decomposedOutputs, keysInfo, extra, unlockTimestamp);
 
-                    uint64_t actualFee = Utilities::getTransactionFee(
+                    const uint64_t actualFee = Utilities::getTransactionFee(
                         preparedTransaction.transaction->getTransactionData().size(),
                         m_node.getLastKnownBlockHeight(),
                         feePerByte
                     );
-                    // pre-fork we still need assure the previous minimum fee
-                    const uint64_t height = m_node.getLastKnownBlockHeight();
-                    if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
-                        actualFee = CryptoNote::parameters::MINIMUM_FEE;
-                    }
 
                     /* Great! The fee we estimated is greater than or equal
                      * to the min/specified fee per byte for a transaction
