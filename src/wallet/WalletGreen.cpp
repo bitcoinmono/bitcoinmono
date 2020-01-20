@@ -1840,6 +1840,10 @@ namespace CryptoNote
                         m_node.getLastKnownBlockHeight(),
                         feePerByte
                     );
+                    // pre-fork we still need assure the previous minimum fee
+                    if (daemon->networkBlockCount() < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                        actualFee = CryptoNote::parameters::MINIMUM_FEE;
+                    }
 
                     /* Great! The fee we estimated is greater than or equal
                      * to the min/specified fee per byte for a transaction

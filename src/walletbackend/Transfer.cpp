@@ -159,7 +159,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(tx);
 
-        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, daemon->networkBlockCount(), tx))
+        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, tx))
         {
             return {UNEXPECTED_FEE, Crypto::Hash()};
         }
@@ -476,7 +476,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(txResult.transaction);
 
-        if (!verifyTransactionFee(fee, actualFee, daemon->networkBlockCount(), txResult.transaction))
+        if (!verifyTransactionFee(fee, actualFee, txResult.transaction))
         {
             return {UNEXPECTED_FEE, Crypto::Hash(), txInfo};
         }
@@ -613,6 +613,10 @@ namespace SendTransaction
                 daemon->networkBlockCount(),
                 feePerByte
             );
+            // pre-fork we still need assure the previous minimum fee
+            if (daemon->networkBlockCount() < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                actualFee = CryptoNote::parameters::MINIMUM_FEE;
+            }
 
             /* Great! The fee we estimated is greater than or equal
              * to the min/specified fee per byte for a transaction
@@ -1454,17 +1458,8 @@ namespace SendTransaction
     bool verifyTransactionFee(
         const WalletTypes::FeeType expectedFee,
         const uint64_t actualFee,
-        const uint64_t height,
         const CryptoNote::Transaction tx)
     {
-        const bool isFusion = expectedFee.isFixedFee && expectedFee.fixedFee == 0;
-        
-        if (!isFusion) { // special cases, 1000*ACCEPTABLE_FEE ceiling to avoid too much fee mistake
-            if (actualFee > CryptoNote::parameters::ACCEPTABLE_FEE * 1000 && CryptoNote::parameters::ACCEPTABLE_FEE > CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1 * 1024)
-                return false;
-            if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT) return actualFee >= CryptoNote::parameters::MINIMUM_FEE;
-        }
-
         if (expectedFee.isFixedFee)
         {
             return expectedFee.fixedFee == actualFee;
