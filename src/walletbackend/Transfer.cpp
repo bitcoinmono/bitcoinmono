@@ -618,6 +618,12 @@ namespace SendTransaction
                 daemon->networkBlockCount(),
                 feePerByte
             );
+            // pre-fork we still need assure the previous minimum fee
+            const uint64_t height = daemon->networkBlockCount();
+            if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && estimatedFee < CryptoNote::parameters::MINIMUM_FEE) {
+                estimatedFee = CryptoNote::parameters::MINIMUM_FEE;
+            }
+
 
             /* Great! The fee we estimated is greater than or equal
              * to the min/specified fee per byte for a transaction
