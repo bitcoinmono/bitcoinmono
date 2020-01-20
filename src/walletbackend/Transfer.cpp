@@ -1480,7 +1480,7 @@ namespace SendTransaction
 
             const size_t txSize = toBinaryArray(tx).size();
 
-            const size_t calculatedFee = static_cast<uint64_t>(feePerByte * txSize);
+            size_t calculatedFee = static_cast<uint64_t>(feePerByte * txSize);
             // pre-fork we still need assure the previous minimum fee
             if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && calculatedFee < CryptoNote::parameters::MINIMUM_FEE) {
                 calculatedFee = CryptoNote::parameters::MINIMUM_FEE;
