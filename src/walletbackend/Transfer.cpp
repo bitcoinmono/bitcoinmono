@@ -159,7 +159,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(tx);
 
-        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, tx))
+        if (!verifyTransactionFee(WalletTypes::FeeType::FixedFee(0), actualFee, daemon->networkBlockCount(), tx))
         {
             return {UNEXPECTED_FEE, Crypto::Hash()};
         }
@@ -481,7 +481,7 @@ namespace SendTransaction
 
         const uint64_t actualFee = sumTransactionFee(txResult.transaction);
 
-        if (!verifyTransactionFee(fee, actualFee, txResult.transaction))
+        if (!verifyTransactionFee(fee, actualFee, daemon->networkBlockCount(), txResult.transaction))
         {
             return {UNEXPECTED_FEE, Crypto::Hash(), txInfo};
         }
@@ -1465,6 +1465,7 @@ namespace SendTransaction
     bool verifyTransactionFee(
         const WalletTypes::FeeType expectedFee,
         const uint64_t actualFee,
+        const uint64_t height,
         const CryptoNote::Transaction tx)
     {
         if (expectedFee.isFixedFee)
@@ -1481,7 +1482,6 @@ namespace SendTransaction
 
             const size_t calculatedFee = static_cast<uint64_t>(feePerByte * txSize);
             // pre-fork we still need assure the previous minimum fee
-            const uint64_t height = daemon->networkBlockCount();
             if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && calculatedFee < CryptoNote::parameters::MINIMUM_FEE) {
                 calculatedFee = CryptoNote::parameters::MINIMUM_FEE;
             }
