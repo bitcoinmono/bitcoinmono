@@ -613,15 +613,15 @@ namespace SendTransaction
 
             const size_t actualTxSize = toBinaryArray(txResult.transaction).size();
 
-            const uint64_t actualFee = Utilities::getTransactionFee(
+            uint64_t actualFee = Utilities::getTransactionFee(
                 actualTxSize,
                 daemon->networkBlockCount(),
                 feePerByte
             );
             // pre-fork we still need assure the previous minimum fee
             const uint64_t height = daemon->networkBlockCount();
-            if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && estimatedFee < CryptoNote::parameters::MINIMUM_FEE) {
-                estimatedFee = CryptoNote::parameters::MINIMUM_FEE;
+            if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                actualFee = CryptoNote::parameters::MINIMUM_FEE;
             }
 
 
