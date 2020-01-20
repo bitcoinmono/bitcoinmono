@@ -1797,7 +1797,7 @@ namespace CryptoNote
                     );
                     // pre-fork we still need assure the previous minimum fee
                     const uint64_t height = m_node.getLastKnownBlockHeight();
-                    if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && actualFee < CryptoNote::parameters::MINIMUM_FEE) {
+                    if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && estimatedFee < CryptoNote::parameters::MINIMUM_FEE) {
                         estimatedFee = CryptoNote::parameters::MINIMUM_FEE;
                     }
                 }

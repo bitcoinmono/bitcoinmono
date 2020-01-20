@@ -243,7 +243,7 @@ namespace Utilities
         if (height < CryptoNote::parameters::MINIMUM_FEE_PER_BYTE_V1_HEIGHT && minFee < CryptoNote::parameters::MINIMUM_FEE) {
             minFee = CryptoNote::parameters::MINIMUM_FEE;
         }
-        if (minFee > CryptoNote::parameters::ACCEPTABLE_FEE) minFee = CryptoNote::parameters::ACCEPTABLE_FEE;
+        if (minFee > CryptoNote::parameters::ACCEPTABLE_FEE_V1) minFee = CryptoNote::parameters::ACCEPTABLE_FEE_V1;
         return minFee;
     }
 
