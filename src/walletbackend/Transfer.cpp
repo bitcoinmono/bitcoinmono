@@ -608,7 +608,7 @@ namespace SendTransaction
 
             const size_t actualTxSize = toBinaryArray(txResult.transaction).size();
 
-            const uint64_t actualFee = Utilities::getTransactionFee(
+            uint64_t actualFee = Utilities::getTransactionFee(
                 actualTxSize,
                 daemon->networkBlockCount(),
                 feePerByte

@@ -1835,7 +1835,7 @@ namespace CryptoNote
 
                     preparedTransaction.transaction = makeTransaction(decomposedOutputs, keysInfo, extra, unlockTimestamp);
 
-                    const uint64_t actualFee = Utilities::getTransactionFee(
+                    uint64_t actualFee = Utilities::getTransactionFee(
                         preparedTransaction.transaction->getTransactionData().size(),
                         m_node.getLastKnownBlockHeight(),
                         feePerByte
