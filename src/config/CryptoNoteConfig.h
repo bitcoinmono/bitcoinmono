@@ -114,7 +114,7 @@ namespace CryptoNote
         const double MINIMUM_FEE_PER_BYTE_V1 = 105000.00 / FEE_PER_BYTE_CHUNK_SIZE; // 1 chunk = 10.5 BTCMZ fee - 1kB = 105000 * 4 = 42.0 BTCMZ
 
         /* Height for our first fee to byte change to take effect. */
-        const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 1000000; // To change
+        const uint64_t MINIMUM_FEE_PER_BYTE_V1_HEIGHT = 650000; // 650k
         
         /* Backward compatibility */
         const uint64_t ACCEPTABLE_FEE    = UINT64_C(5000000); // with this fee, tx is always accepted whatever size - 500 btcmz
@@ -270,7 +270,7 @@ namespace CryptoNote
             50000, // fork to fix tx size and count bloat
             333000, // fork to change mixin, Argon2id 
             399000, // minimum fee 500 btcmz - or 5000000 atomic units
-            1000000  // dynamic fee 
+            650000  // dynamic fee 
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK - Count from 0 */
