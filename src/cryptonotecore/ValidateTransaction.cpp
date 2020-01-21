@@ -368,7 +368,7 @@ bool ValidateTransaction::validateTransactionFee()
             );
 
             validFee = fee >= minFee;
-            if (minFee >= CryptoNote::parameters::ACCEPTABLE_FEE) validFee = true;
+            if (minFee >= CryptoNote::parameters::ACCEPTABLE_FEE && !m_isPoolTransaction) validFee = true;
         }
         else if (m_isPoolTransaction)
         {
