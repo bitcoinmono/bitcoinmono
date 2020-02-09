@@ -78,6 +78,7 @@ class RpcServer
         httplib::Response &res,
         const RpcMode routePermissions,
         const bool bodyRequired,
+        const bool syncRequired,
         std::function<std::tuple<Error, uint16_t>(
             const httplib::Request &req,
             httplib::Response &res,
