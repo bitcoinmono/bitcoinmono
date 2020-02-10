@@ -2954,6 +2954,17 @@ namespace CryptoNote
                 }
             };
 
+        /* Then we'll loop through the fusion transactions as they don't
+           pay anything to use the network */
+        for (const auto &transaction : fusionTransactions)
+        {
+            if (addTransactionToBlockTemplate(transaction))
+            {
+                logger(Logging::TRACE) << "Fusion transaction " << transaction.getTransactionHash()
+                                       << " included in block template";
+            }
+        }
+
         /* First we're going to loop through transactions that have a fee:
            ie. the transactions that are paying to use the network */
         for (const auto &transaction : regularTransactions)
@@ -2967,17 +2978,6 @@ namespace CryptoNote
             {
                 logger(Logging::TRACE) << "Transaction " << transaction.getTransactionHash()
                                        << " not included in block template";
-            }
-        }
-
-        /* Then we'll loop through the fusion transactions as they don't
-           pay anything to use the network */
-        for (const auto &transaction : fusionTransactions)
-        {
-            if (addTransactionToBlockTemplate(transaction))
-            {
-                logger(Logging::TRACE) << "Fusion transaction " << transaction.getTransactionHash()
-                                       << " included in block template";
             }
         }
     }
