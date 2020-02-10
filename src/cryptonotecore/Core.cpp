@@ -2963,6 +2963,7 @@ namespace CryptoNote
                 logger(Logging::TRACE) << "Fusion transaction " << transaction.getTransactionHash()
                                        << " included in block template";
             }
+            if (transactionsSize > maxTotalSize /2) break;
         }
 
         /* First we're going to loop through transactions that have a fee:
