@@ -10,6 +10,7 @@
 #include "leveldb/db.h"
 #include "leveldb/table.h"
 #include "leveldb/write_batch.h"
+#include "leveldb/filter_policy.h"
 
 using namespace CryptoNote;
 using namespace Logging;
