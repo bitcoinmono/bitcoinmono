@@ -40,13 +40,15 @@ void LevelDBWrapper::init(const DataBaseConfig &config)
     logger(INFO) << "Daemon uses kNoCompression...";
     dbOptions.compression = leveldb::kNoCompression;
 #endif
-    dbOptions.max_file_size = 1024 * 1024 * 1024; // 1024 MB
+    dbOptions.max_file_size = 128 * 1024 * 1024; // 128 MB
 
     dbOptions.write_buffer_size =  static_cast<size_t>(config.getWriteBufferSize());
 
     dbOptions.max_open_files =  config.getMaxOpenFiles();
 
     dbOptions.block_cache =  leveldb::NewLRUCache(config.getReadCacheSize());
+
+    dbOptions.filter_policy = leveldb::NewBloomFilterPolicy(20);
 
     if (state.load() != NOT_INITIALIZED)
     {
