@@ -10,7 +10,6 @@
 #include "leveldb/db.h"
 #include "leveldb/table.h"
 #include "leveldb/write_batch.h"
-#include "leveldb/filter_policy.h"
 
 using namespace CryptoNote;
 using namespace Logging;
@@ -48,8 +47,6 @@ void LevelDBWrapper::init(const DataBaseConfig &config)
     dbOptions.max_open_files =  config.getMaxOpenFiles();
 
     dbOptions.block_cache =  leveldb::NewLRUCache(config.getReadCacheSize());
-
-    dbOptions.filter_policy = leveldb::NewBloomFilterPolicy(20);
 
     if (state.load() != NOT_INITIALIZED)
     {

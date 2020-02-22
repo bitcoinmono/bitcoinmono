@@ -10,7 +10,6 @@
 #include "rocksdb/db.h"
 #include "rocksdb/table.h"
 #include "rocksdb/utilities/backupable_db.h"
-#include "rocksdb/filter_policy.h"
 
 using namespace CryptoNote;
 using namespace Logging;
@@ -276,7 +275,6 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 
     rocksdb::BlockBasedTableOptions tableOptions;
     tableOptions.block_cache = rocksdb::NewLRUCache(config.getReadCacheSize());
-    tableOptions.filter_policy.reset(rocksdb::NewBloomFilterPolicy(15, false));
     std::shared_ptr<rocksdb::TableFactory> tfp(NewBlockBasedTableFactory(tableOptions));
     fOptions.table_factory = tfp;
 
